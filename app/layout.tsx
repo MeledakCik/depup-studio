@@ -1,18 +1,25 @@
-import type { Metadata } from 'next';
-import './globals.css';
+import type { Metadata } from "next";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: 'Depup Studio — Produk Digital untuk Kebutuhan Sehari-hari',
+  title: "Depup Studio — Frontier Digital Systems & Cloud Ecosystem",
   description:
-    'Depup Studio adalah perusahaan pengembang produk digital di balik depup.cloud dan depup Office.',
-  keywords: ['Depup Studio', 'depup.cloud', 'depup Office', 'produk digital'],
-  openGraph: {
-    title: 'Depup Studio — Produk Digital untuk Kebutuhan Sehari-hari',
-    description: 'Studio di balik depup.cloud dan depup Office.',
-    url: 'https://depup.studio',
-    siteName: 'Depup Studio',
-    type: 'website',
-  },
+    "Official flagship corporate & product ecosystem portal for depup.studio — parent studio of depup.cloud, depup Office, Sentinel-ID, and MotionKu.",
 };
 
 export default function RootLayout({
@@ -21,8 +28,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
-      <body>{children}</body>
+    <html
+      lang="en"
+      className={`${inter.variable} ${plusJakartaSans.variable}`}
+    >
+      <body className="bg-surface font-sans text-on-surface antialiased">
+        {children}
+      </body>
     </html>
   );
 }
