@@ -42,7 +42,8 @@ export function CommandPalette({ open, onClose, onOpenSystem }: { open: boolean;
       { id: "lnk-office", label: "depup Office page", hint: "/office", group: "Links", run: go("/office"), keywords: "office documents android windows" },
       { id: "lnk-sentinel", label: "Sentinel-ID page", hint: "/sentinel", group: "Links", run: go("/sentinel"), keywords: "sentinel security audit" },
       { id: "lnk-cloud", label: "Open depup.cloud", hint: "depup.cloud", group: "Links", run: go("https://depup.cloud", true), keywords: "cloud launch mcp" },
-      { id: "lnk-gh", label: "GitHub", hint: "github.com/MeledakCik", group: "Links", run: go("https://github.com/MeledakCik", true), keywords: "github source code builders" },
+      { id: "lnk-privacy", label: "Privacy Center", hint: "/privacy", group: "Links", run: go("/privacy"), keywords: "privacy policy kebijakan privasi" },
+      { id: "lnk-contact", label: "Contact the studio", hint: "depupdev@gmail.com", group: "Links", run: go("mailto:depupdev@gmail.com"), keywords: "contact email builders" },
     ];
   }, [onOpenSystem]);
 

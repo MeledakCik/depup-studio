@@ -120,7 +120,7 @@ export function InsightsAndMission() {
           <p>We make thoughtful software, useful infrastructure, and connected tools for the people who put them to work.</p>
           <div className="mission-actions">
             <a href="#ecosystem" className="mission-button mission-button--light">Explore the ecosystem <ArrowRight /></a>
-            <a href="https://github.com/MeledakCik" target="_blank" rel="noopener noreferrer" className="mission-button mission-button--outline">Meet the builders <ArrowUpRight /></a>
+            <a href="mailto:depupdev@gmail.com" className="mission-button mission-button--outline">Contact the studio <ArrowUpRight /></a>
           </div>
           <div className="mission-signature"><span>DEPUP</span><i /> STUDIO / 2026</div>
         </ScrollReveal>

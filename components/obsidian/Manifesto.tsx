@@ -45,12 +45,10 @@ export function Manifesto() {
           </a>
           <a
             ref={b}
-            href="https://github.com/MeledakCik"
-            target="_blank"
-            rel="noreferrer"
+            href="mailto:depupdev@gmail.com"
             className="inline-flex items-center justify-center gap-1 rounded-full bg-obs-container px-10 py-4 text-[12px] font-semibold text-obs-text transition-[background-color,transform] duration-300 ease-out hover:bg-obs-variant"
           >
-            Meet the builders
+            Contact the studio
             <ArrowUpRight className="h-4 w-4" />
           </a>
         </div>

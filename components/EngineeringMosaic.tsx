@@ -154,7 +154,6 @@ export function EngineeringMosaic() {
           <div className="platform-ribbon-links">
             <a href="https://depup.cloud" target="_blank" rel="noopener noreferrer">depup.cloud <ArrowUpRight /></a>
             <a href="https://depup.web.id" target="_blank" rel="noopener noreferrer">depup.web.id <ArrowUpRight /></a>
-            <a href="https://github.com/MeledakCik" target="_blank" rel="noopener noreferrer">GitHub <ArrowUpRight /></a>
           </div>
         </ScrollReveal>
       </div>

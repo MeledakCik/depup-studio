@@ -44,8 +44,8 @@ const spotlightItems = [
     status: "Passive-only · GET-only",
     ctaPrimary: "Explore Sentinel-ID",
     ctaPrimaryHref: "/sentinel",
-    ctaSecondary: "GitHub Repository",
-    ctaSecondaryHref: "https://github.com/MeledakCik/audit-otomatis",
+    ctaSecondary: "Open sentinel-id.net",
+    ctaSecondaryHref: "https://sentinel-id.net",
   },
 ];
 

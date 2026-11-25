@@ -37,7 +37,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: "Studio Manifesto", href: "#mission" },
       { label: "Studio Updates", href: "#updates" },
-      { label: "GitHub", href: "https://github.com/MeledakCik", external: true },
+      { label: "Contact", href: "mailto:depupdev@gmail.com" },
       { label: "Support the studio", href: "https://saweria.co/depupdonate", external: true },
     ],
   },
@@ -97,12 +97,12 @@ export function ObsFooter({ onOpen }: { onOpen: (id: string) => void }) {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <span className="text-[13px] text-obs-dim">© 2026 Depup Studio. Made with intent.</span>
             <div className="flex items-center gap-3 text-[13px] text-obs-dim">
-              <a className="transition-colors hover:text-obs-muted" href="/office/privacy-policy">
-                Privacy Policy
+              <a className="transition-colors hover:text-obs-muted" href="/privacy">
+                Privacy
               </a>
               <span className="text-white/12">•</span>
-              <a className="transition-colors hover:text-obs-muted" href="https://github.com/MeledakCik" target="_blank" rel="noreferrer">
-                Source
+              <a className="transition-colors hover:text-obs-muted" href="mailto:depupdev@gmail.com">
+                Contact
               </a>
             </div>
           </div>

@@ -76,7 +76,7 @@ export function Footer() {
           <div className="footer-bottom-links">
             <a href="#spotlight">Overview</a>
             <a href="#updates">Latest work</a>
-            <a href="https://github.com/MeledakCik" target="_blank" rel="noopener noreferrer">GitHub <ArrowUpRight /></a>
+            <a href="/privacy">Privacy</a>
           </div>
           <span>© {new Date().getFullYear()} Depup Studio. Made with intent.</span>
         </ScrollReveal>

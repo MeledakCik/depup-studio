@@ -257,7 +257,6 @@ export const PRINCIPLES: Principle[] = [
     links: [
       { label: "depup.cloud", href: "https://depup.cloud", external: true },
       { label: "depup.web.id", href: "https://depup.web.id", external: true },
-      { label: "GitHub", href: "https://github.com/MeledakCik", external: true },
     ],
     metrics: [
       ["MCP latency", "12ms"],
@@ -280,7 +279,7 @@ export const PRINCIPLES: Principle[] = [
     links: [
       { label: "Sentinel-ID", href: "/sentinel" },
       { label: "sentinel-id.net", href: "https://sentinel-id.net", external: true },
-      { label: "Audit source", href: "https://github.com/MeledakCik/audit-otomatis", external: true },
+      { label: "Privacy policy", href: "/sentinel/privacy-policy" },
     ],
     metrics: [
       ["Method", "GET"],

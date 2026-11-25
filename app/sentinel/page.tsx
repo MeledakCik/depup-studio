@@ -3,7 +3,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   Check,
-  Code2,
   Globe,
   Network,
   Radar,
@@ -19,7 +18,6 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { ScrollScene } from "@/components/ScrollScene";
 
 const sentinelUrl = "https://sentinel-id.net";
-const sourceUrl = "https://github.com/MeledakCik/audit-otomatis";
 
 export const metadata: Metadata = {
   title: "Sentinel-ID — Audit Keamanan Website Pasif",
@@ -57,11 +55,6 @@ export default function SentinelPage() {
       <ScrollProgress />
       <ProductHeader
         cta={{ label: "Buka Sentinel-ID", href: sentinelUrl }}
-        links={
-          <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="hidden items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary md:inline-flex">
-            <Code2 className="h-4 w-4" /> Source
-          </a>
-        }
       />
 
       <section className="overflow-hidden bg-surface-canvas">
