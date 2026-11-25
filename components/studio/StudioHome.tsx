@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import {
+  ArrowBigUp,
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
@@ -16,6 +17,7 @@ import {
   Pause,
   Play,
   Plus,
+  Shield,
   ShieldCheck,
   Sparkles,
   Terminal,
@@ -486,6 +488,55 @@ const CATEGORY_ICON: Record<Category, LucideIcon> = {
 };
 /** New systems get an icon from their category, so the constellation keeps working as the list grows. */
 const iconFor = (id: string, category: Category) => SYSTEM_ICON[id] ?? CATEGORY_ICON[category] ?? Layers;
+/**
+ * Real app icons. Add a file to /public/logos/<id>.svg (or .png) and list it here
+ * with `src` to show the actual logo; `bg` + `glyph` recreates a simple mark.
+ * Systems without an entry fall back to a category icon.
+ */
+const APP_LOGOS: Record<string, { src?: string; bg?: string; glyph?: LucideIcon }> = {
+  office: { src: "/office-logo.svg" },
+  cloud: { bg: "#7C4DFF", glyph: ArrowBigUp },
+  sentinel: { bg: "#8B6CF6", glyph: Shield },
+};
+
+function AppIcon({
+  id,
+  category,
+  tone,
+  className,
+  glyphClass,
+}: {
+  id: string;
+  category: Category;
+  tone: "dark" | "light";
+  className: string;
+  glyphClass: string;
+}) {
+  const logo = APP_LOGOS[id];
+  if (logo?.src) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={logo.src} alt="" aria-hidden className={`${className} object-cover`} draggable={false} />;
+  }
+  if (logo?.bg && logo.glyph) {
+    const G = logo.glyph;
+    return (
+      <span className={`${className} grid place-items-center text-white`} style={{ background: logo.bg }}>
+        <G className={glyphClass} strokeWidth={2} aria-hidden />
+      </span>
+    );
+  }
+  const Icon = iconFor(id, category);
+  return (
+    <span
+      className={`${className} grid place-items-center ${
+        tone === "dark" ? "border border-white/15 bg-white/[0.08] text-[#8AB4FF] backdrop-blur-md" : "bg-[#0057C3]/[0.08] text-[#0057C3]"
+      }`}
+    >
+      <Icon className={glyphClass} strokeWidth={1.75} aria-hidden />
+    </span>
+  );
+}
+
 const shortName = (name: string) => name.split(" & ")[0].replace(/ Dev Edition$/, "");
 
 const tileColor = (hex: string) => (hex.toLowerCase() === "#e2e2e6" ? "#8AB4FF" : hex);
@@ -649,7 +700,7 @@ function Constellation() {
 
         {SYSTEMS.map((s, i) => {
           const color = tileColor(ACCENT_HEX[s.accent]);
-          const Icon = iconFor(s.id, s.category);
+          const glow = APP_LOGOS[s.id]?.bg ?? (APP_LOGOS[s.id]?.src ? "#0037FF" : color);
           return (
             <a
               key={s.id}
@@ -663,10 +714,16 @@ function Constellation() {
             >
               <span className="st-float block" style={{ animationDelay: `${(i % 5) * -1.3}s` }}>
                 <span
-                  className="grid h-[60px] w-[60px] place-items-center rounded-[18px] border border-white/15 bg-white/[0.06] font-display text-[20px] font-semibold backdrop-blur-md transition-all duration-500 group-hover:-translate-y-1 group-hover:border-white/40 group-hover:bg-white/[0.12] sm:h-[76px] sm:w-[76px] sm:rounded-[22px] sm:text-[24px]"
-                  style={{ color, boxShadow: `0 10px 40px -12px ${color}66` }}
+                  className="block rounded-[18px] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-105 sm:rounded-[22px]"
+                  style={{ boxShadow: `0 14px 44px -14px ${glow}aa` }}
                 >
-                  <Icon className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={1.75} aria-hidden />
+                  <AppIcon
+                    id={s.id}
+                    category={s.category}
+                    tone="dark"
+                    className="block h-[60px] w-[60px] overflow-hidden rounded-[18px] sm:h-[76px] sm:w-[76px] sm:rounded-[22px]"
+                    glyphClass="h-7 w-7 sm:h-9 sm:w-9"
+                  />
                 </span>
               </span>
               <span
@@ -791,14 +848,13 @@ function Ecosystem() {
             >
               <div className="flex items-center justify-between">
                 <span className="font-obs-mono text-[12px] text-[#5E6A80]">DEPUP / {s.num}</span>
-                {(() => {
-                  const Icon = iconFor(s.id, s.category);
-                  return (
-                    <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#0057C3]/[0.07] text-[#0057C3] transition-transform duration-500 group-hover:scale-110">
-                      <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                    </span>
-                  );
-                })()}
+                <AppIcon
+                  id={s.id}
+                  category={s.category}
+                  tone="light"
+                  className="block h-11 w-11 overflow-hidden rounded-[12px] transition-transform duration-500 group-hover:scale-110"
+                  glyphClass="h-5 w-5"
+                />
               </div>
               <p className="mt-8 text-[13px] text-[#4F5B70]">{s.badge}</p>
               <h3 className="mt-1.5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em]">{s.name}</h3>
