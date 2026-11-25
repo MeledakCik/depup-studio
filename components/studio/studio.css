@@ -156,6 +156,25 @@ html:has(.st-root) {
   60% { opacity: 0.5; transform: scale(0.8) rotate(90deg); }
 }
 
+/* Selected planet: two expanding halos in the app colour. */
+.st-select::before,
+.st-select::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 1.5px solid currentColor;
+  box-shadow: 0 0 18px currentColor;
+  animation: st-halo 1.8s var(--st-ease) infinite;
+}
+.st-select::after {
+  animation-delay: 0.9s;
+}
+@keyframes st-halo {
+  from { transform: scale(1); opacity: 0.9; }
+  to { transform: scale(1.9); opacity: 0; }
+}
+
 /* Story progress bar. */
 .st-progress {
   transform-origin: left center;

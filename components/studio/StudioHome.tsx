@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Sparkles,
   Terminal,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { ACCENT_HEX, CATEGORIES, NOTES, PRINCIPLES, SYSTEMS, UPDATES, type Category } from "@/components/obsidian/data";
@@ -812,6 +813,16 @@ function Constellation() {
   const copyB = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const n = SYSTEMS.length;
+  const [selected, setSelected] = useState<number | null>(null);
+  const selectedRef = useRef<number | null>(null);
+  const fx = useRef<{ wave: (x: number, y: number, power?: number, color?: string) => void }>({ wave: () => {} });
+  useEffect(() => {
+    selectedRef.current = selected;
+    if (selected === null) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSelected(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -840,6 +851,25 @@ function Constellation() {
     let galaxy = makeGalaxy(2600, 0);
     const dustImgs = ["120,200,255", "60,120,255", "150,110,255"].map(makeBlob);
     const blobs = NEBULA.map((b) => ({ ...b, img: makeBlob(b.c) }));
+
+    // Click effects: shockwaves that push stars, spark bursts and a black-hole flare.
+    const waves: { x: number; y: number; t: number; power: number; color: string }[] = [];
+    let sparks: { x: number; y: number; vx: number; vy: number; life: number; color: string }[] = [];
+    let flare = 0;
+    fx.current.wave = (x, y, power = 1, color = HOLO) => {
+      waves.push({ x, y, t: time, power, color });
+      if (waves.length > 5) waves.shift();
+      const count = Math.round(28 * power);
+      for (let k = 0; k < count; k++) {
+        const a = Math.random() * Math.PI * 2;
+        const v = (0.06 + Math.random() * 0.3) * power;
+        sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, color: Math.random() < 0.45 ? "#FFFFFF" : color });
+      }
+      if (Math.hypot(x - W / 2, y - CY) < BH * 2.4) {
+        flare = 1;
+        waves.push({ x: W / 2, y: CY, t: time + 120, power: 1.6, color: "#BFE6FF" });
+      }
+    };
 
     const computeLayout = () => {
       W = stage.clientWidth;
@@ -1051,16 +1081,68 @@ function Constellation() {
           const ang = st.a + spin / (0.25 + st.r);
           const rr = st.r * G * gScale;
           const P = project(Math.cos(ang) * rr, Math.sin(ang) * rr, st.y * G);
+          let sx = P.x;
+          let sy = P.y;
+          for (const w of waves) {
+            const age = time - w.t;
+            if (age < 0) continue;
+            const dx = sx - w.x;
+            const dy = sy - w.y;
+            const d = Math.hypot(dx, dy) || 1;
+            const band = Math.exp(-((d - age * 0.55) ** 2) / 2200);
+            const push = band * Math.max(0, 1 - age / 1700) * 28 * w.power;
+            sx += (dx / d) * push;
+            sy += (dy / d) * push;
+          }
           const tw = 0.65 + 0.35 * Math.sin(time * 0.003 + st.tw);
           ctx.globalAlpha = Math.min(1, gAlpha * tw * Math.min(1, 0.5 + 0.6 * P.s) * (0.75 + 0.6 * (1 - st.r)));
           const sz = st.size * P.s;
-          ctx.fillRect(P.x - sz / 2, P.y - sz / 2, sz, sz);
+          ctx.fillRect(sx - sz / 2, sy - sz / 2, sz, sz);
         }
       });
 
       // Gargantua-style black hole: lensed disk around a dark shadow.
       const bh = BH * (1 - gather) * (0.55 + 0.45 * boot);
-      if (bh > 0.5) drawBlackHole(cx, CY, bh, boot * (1 - 0.4 * gather));
+      if (bh > 0.5) drawBlackHole(cx, CY, bh * (1 + 0.1 * flare), boot * (1 - 0.4 * gather));
+      if (flare > 0.01 && bh > 0.5) {
+        const fg = ctx.createRadialGradient(cx, CY, bh, cx, CY, bh * 7);
+        fg.addColorStop(0, `rgba(230,245,255,${0.55 * flare})`);
+        fg.addColorStop(0.3, `rgba(92,160,255,${0.25 * flare})`);
+        fg.addColorStop(1, "rgba(60,80,255,0)");
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = fg;
+        ctx.fillRect(cx - bh * 7, CY - bh * 7, bh * 14, bh * 14);
+      }
+
+      // Shockwave rings lie in the galaxy plane, so they read as 3D ellipses.
+      for (const w of waves) {
+        const age = time - w.t;
+        const k = age / 1700;
+        if (age < 0 || k >= 1) continue;
+        const r = age * 0.55;
+        const ry = r * Math.max(0.32, cosT);
+        ctx.shadowColor = w.color;
+        ctx.shadowBlur = 22;
+        ctx.globalAlpha = Math.min(1, (1 - k) ** 2 * 0.85 * w.power);
+        ctx.strokeStyle = w.color;
+        ctx.lineWidth = 1.5 + 8 * (1 - k);
+        ctx.beginPath();
+        ctx.ellipse(w.x, w.y, r, ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = Math.min(1, (1 - k) ** 3 * 0.9);
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(w.x, w.y, r * 0.82, ry * 0.82, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+      for (const sp of sparks) {
+        ctx.globalAlpha = sp.life;
+        ctx.fillStyle = sp.color;
+        const z = 1.2 + 2.4 * sp.life;
+        ctx.fillRect(sp.x - z / 2, sp.y - z / 2, z, z);
+      }
 
       if (flash > 0.01) {
         const f = ctx.createRadialGradient(cx, CY, 0, cx, CY, Math.max(W, H) * 0.6);
@@ -1105,10 +1187,11 @@ function Constellation() {
         const y = py + (N.ey - py) * gather;
         const front = (Math.sin(a) * N.r + 1) / 2;
         const sc = (s * orbitScale * (0.78 + 0.22 * front) * (1 - gather) + gather) * (0.3 + 0.7 * boot);
-        const op = boot * ((1 - gather) * (0.3 + 0.7 * front) + gather);
+        const sel = selectedRef.current;
+        const op = boot * ((1 - gather) * (0.3 + 0.7 * front) + gather) * (sel !== null && sel !== i ? 0.35 : 1);
         const el = tileRefs.current[i];
         if (el) {
-          el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${sc})`;
+          el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${sc * (sel === i ? 1.22 : 1)})`;
           el.style.opacity = String(op);
           el.style.zIndex = String(Math.round(100 + front * 100));
         }
@@ -1145,7 +1228,18 @@ function Constellation() {
       // Damped follow keeps motion smooth even when the wheel jumps.
       cur += (target - cur) * (1 - Math.exp(-dt / 150));
       if (Math.abs(target - cur) < 0.0005) cur = target;
-      yawT += dt * 0.0002 * (1 - easeInOut(range(cur, 0.5, 0.78)));
+      yawT += dt * 0.0002 * (1 - easeInOut(range(cur, 0.5, 0.78))) * (selectedRef.current === null ? 1 : 0.15);
+      flare *= Math.exp(-dt / 520);
+      for (let k = waves.length - 1; k >= 0; k--) if (time - waves[k].t > 1800) waves.splice(k, 1);
+      const drag = Math.pow(0.93, dt / 16);
+      for (const sp of sparks) {
+        sp.x += sp.vx * dt;
+        sp.y += sp.vy * dt;
+        sp.vx *= drag;
+        sp.vy *= drag;
+        sp.life -= dt / 950;
+      }
+      sparks = sparks.filter((sp) => sp.life > 0);
       render();
       if (running) raf = requestAnimationFrame(tick);
     };
@@ -1184,7 +1278,16 @@ function Constellation() {
 
   return (
     <section ref={sectionRef} aria-label="The Depup ecosystem" className="relative h-[280vh] bg-[#02060F] text-[#F3F6FC] md:h-[330vh]">
-      <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
+      <div
+        ref={stageRef}
+        onPointerDown={(e) => {
+          if ((e.target as HTMLElement).closest("[data-orb],[data-card],a,button")) return;
+          const r = e.currentTarget.getBoundingClientRect();
+          fx.current.wave(e.clientX - r.left, e.clientY - r.top, 1);
+          setSelected(null);
+        }}
+        className="sticky top-0 h-[100svh] cursor-crosshair select-none overflow-hidden"
+      >
         <canvas ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-0" />
         <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(2,6,15,0.85) 100%)" }} />
 
@@ -1199,10 +1302,24 @@ function Constellation() {
                 ref={(el) => {
                   tileRefs.current[i] = el;
                 }}
-                aria-label={s.name}
-                className="group absolute left-0 top-0 flex flex-col items-center will-change-transform"
+                aria-label={`About ${s.name}`}
+                data-orb
+                onClick={(e) => {
+                  e.preventDefault();
+                  const st = stageRef.current?.getBoundingClientRect();
+                  const o = orbRefs.current[i]?.getBoundingClientRect();
+                  if (st && o) fx.current.wave(o.left + o.width / 2 - st.left, o.top + o.height / 2 - st.top, 0.8, glow);
+                  setSelected((v) => (v === i ? null : i));
+                }}
+                className="group absolute left-0 top-0 flex cursor-pointer flex-col items-center will-change-transform"
                 style={{ opacity: 0 }}
               >
+                <span className="pointer-events-none absolute -top-9 whitespace-nowrap rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[12px] text-white opacity-0 backdrop-blur-md transition-all duration-300 group-hover:-translate-y-1 group-hover:opacity-100">
+                  {shortName(s.name)}
+                </span>
+                {selected === i && (
+                  <span aria-hidden className="st-select pointer-events-none absolute left-1/2 top-0 h-[60px] w-[60px] -translate-x-1/2 rounded-full sm:h-[76px] sm:w-[76px]" style={{ color: glow }} />
+                )}
                 <span
                   ref={(el) => {
                     orbRefs.current[i] = el;
@@ -1241,6 +1358,53 @@ function Constellation() {
           })}
         </div>
 
+        {selected !== null &&
+          (() => {
+            const s = SYSTEMS[selected];
+            const color = tileColor(ACCENT_HEX[s.accent]);
+            return (
+              <div data-card className="absolute inset-x-4 bottom-20 z-[300] mx-auto max-w-[380px] md:inset-x-auto md:bottom-auto md:right-10 md:top-1/2 md:w-[360px] md:-translate-y-1/2">
+                <div
+                  key={s.id}
+                  className="st-swap rounded-[24px] border border-white/15 bg-[#06122B]/75 p-5 text-left backdrop-blur-xl"
+                  style={{ boxShadow: `0 30px 80px -30px ${color}aa, inset 0 1px 0 rgba(255,255,255,0.08)` }}
+                >
+                  <div className="flex items-start gap-3">
+                    <AppIcon id={s.id} category={s.category} tone="dark" className="block h-12 w-12 shrink-0 overflow-hidden rounded-[14px]" glyphClass="h-6 w-6" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#5CE1FF]">DEPUP / {s.num}</p>
+                      <h3 className="mt-1 font-display text-[20px] font-semibold leading-tight tracking-[-0.015em]">{s.name}</h3>
+                      <p className="mt-0.5 text-[13px] text-[#A9B8D6]">{s.badge}</p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Close"
+                      onClick={() => setSelected(null)}
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/15 text-[#C9D5EC] transition-colors hover:border-white/40 hover:text-white"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <p className="mt-4 text-[14px] leading-[1.6] text-[#C9D5EC]">{s.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {s.tags.slice(0, 3).map((t) => (
+                      <span key={t} className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[12px] text-[#C9D5EC]">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <SmartLink
+                    href={safeHref(s.href)}
+                    className="group mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#0057C3] px-5 text-[14px] font-medium text-white transition-colors hover:bg-[#1F6FEB]"
+                  >
+                    {s.cta}
+                    <ArrowRight className="st-arrow h-4 w-4" />
+                  </SmartLink>
+                </div>
+              </div>
+            );
+          })()}
+
         <div className={`${wrap} pointer-events-none absolute inset-x-0 top-[12vh] z-[250] text-center md:top-[10vh]`}>
           <div ref={copyA} className="absolute inset-x-0">
             <p className={`${eyebrow} text-[#5CE1FF]`}>The Depup ecosystem</p>
@@ -1257,7 +1421,9 @@ function Constellation() {
         </div>
 
         <div className={`${wrap} absolute inset-x-0 bottom-8 z-[250] flex items-center gap-4`}>
-          <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#8FA3C7]">Scroll</span>
+          <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#8FA3C7]">
+            Scroll<span className="hidden md:inline"> · Click space or a planet</span>
+          </span>
           <div className="h-px flex-1 overflow-hidden rounded-full bg-white/15">
             <div ref={barRef} className="h-full origin-left rounded-full" style={{ transform: "scaleX(0)", background: `linear-gradient(90deg, #1F6FEB, ${HOLO})` }} />
           </div>
