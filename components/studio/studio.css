@@ -189,16 +189,6 @@ html:has(.st-root) {
   to { background-position-x: 100%; }
 }
 
-/* Horizon: a lit arc the product stage rises out of. */
-.st-horizon {
-  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
-  background: radial-gradient(50% 30% at 50% 0%, rgba(92, 225, 255, 0.35), rgba(31, 111, 235, 0.12) 55%, rgba(31, 111, 235, 0) 100%);
-  box-shadow:
-    0 -10px 40px rgba(92, 225, 255, 0.45),
-    0 -40px 120px rgba(31, 111, 235, 0.35),
-    inset 0 30px 80px rgba(124, 77, 255, 0.25);
-}
-
 /* Story progress bar. */
 .st-progress {
   transform-origin: left center;

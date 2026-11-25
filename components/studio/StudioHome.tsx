@@ -268,12 +268,61 @@ const SPARKS = [
   { x: 72, y: 9, s: 12, d: -4 },
 ];
 
-/* Wide soft ribbons, Gemini-style: thick in the middle, thin at the ends, with a bright leading edge. */
-const RIBBONS = [
-  { y: 0.83, amp: 0.045, thick: 0.13, freq: 0.9, speed: 0.00022, phase: 0.4, colors: ["92,225,255", "31,111,235", "124,77,255"], alpha: 0.42 },
-  { y: 0.91, amp: 0.035, thick: 0.08, freq: 1.3, speed: -0.00018, phase: 2.1, colors: ["31,111,235", "124,77,255", "92,225,255"], alpha: 0.32 },
-  { y: 0.1, amp: 0.03, thick: 0.06, freq: 1.1, speed: 0.00014, phase: 4.2, colors: ["138,180,255", "92,225,255", "167,139,250"], alpha: 0.22 },
+/* A sea of clouds at dawn: three parallax layers of soft cumulus lit from behind in Depup blue. */
+const CLOUD_LAYERS = [
+  { count: 8, scale: 0.55, y: 0.8, speed: 7, alpha: 0.6, tint: "150,160,255", blur: 6, par: 6 },
+  { count: 7, scale: 0.85, y: 0.88, speed: 12, alpha: 0.82, tint: "110,170,255", blur: 2, par: 12 },
+  { count: 6, scale: 1.25, y: 0.98, speed: 18, alpha: 0.97, tint: "80,190,255", blur: 1.5, par: 22 },
 ];
+
+function makeCloudSprite(seed: number, tint: string) {
+  const w = 520;
+  const h = 260;
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const g = c.getContext("2d")!;
+  const rnd = seeded(seed);
+  const puff = (x: number, y: number, r: number, a: number) => {
+    const gr = g.createRadialGradient(x, y - r * 0.25, 0, x, y, r);
+    gr.addColorStop(0, `rgba(255,255,255,${a})`);
+    gr.addColorStop(0.55, `rgba(255,255,255,${a * 0.6})`);
+    gr.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = gr;
+    g.beginPath();
+    g.arc(x, y, r, 0, Math.PI * 2);
+    g.fill();
+  };
+  g.filter = "blur(5px)";
+  // body: many overlapping soft puffs, taller toward the middle, flat underneath
+  for (let i = 0; i < 70; i++) {
+    const u = 0.08 + 0.84 * rnd();
+    const bump = Math.pow(Math.sin(u * Math.PI), 1.3);
+    const r = h * (0.07 + 0.17 * bump) * (0.6 + 0.6 * rnd());
+    const y = h * 0.72 - bump * h * 0.38 * Math.pow(rnd(), 0.7);
+    puff(u * w, Math.min(y, h * 0.74), r, 0.55 + 0.35 * rnd());
+  }
+  // wispy edges
+  for (let i = 0; i < 24; i++) {
+    const u = rnd() < 0.5 ? 0.02 + 0.2 * rnd() : 0.78 + 0.2 * rnd();
+    puff(u * w, h * (0.62 + 0.1 * rnd()), h * (0.05 + 0.07 * rnd()), 0.35);
+  }
+  g.filter = "none";
+  // light from above, shade underneath in the layer tint
+  g.globalCompositeOperation = "source-atop";
+  const shade = g.createLinearGradient(0, h * 0.3, 0, h * 0.85);
+  shade.addColorStop(0, "rgba(255,255,255,0)");
+  shade.addColorStop(0.55, `rgba(${tint},0.18)`);
+  shade.addColorStop(1, `rgba(${tint},0.5)`);
+  g.fillStyle = shade;
+  g.fillRect(0, 0, w, h);
+  const sunlit = g.createRadialGradient(w * 0.5, h * 0.15, 0, w * 0.5, h * 0.15, w * 0.45);
+  sunlit.addColorStop(0, "rgba(255,255,255,0.55)");
+  sunlit.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = sunlit;
+  g.fillRect(0, 0, w, h);
+  return c;
+}
 
 function GeminiSpark({ size, className, style }: { size: number; className?: string; style?: CSSProperties }) {
   return (
@@ -321,49 +370,56 @@ function HeroAurora() {
       canvas.style.height = `${H}px`;
     };
 
+    const sprites = CLOUD_LAYERS.map((L, li) => [0, 1, 2, 3].map((k) => makeCloudSprite(900 + li * 31 + k * 7, L.tint)));
+    const rndC = seeded(31337);
+    const clouds = CLOUD_LAYERS.map((L, li) =>
+      Array.from({ length: L.count }, (_, k) => ({
+        x: (k + rndC() * 0.6) / L.count,
+        dy: (rndC() - 0.5) * 0.05,
+        s: 0.8 + rndC() * 0.5,
+        img: sprites[li][Math.floor(rndC() * 4)],
+        flip: rndC() < 0.5,
+      }))
+    );
+
     const draw = () => {
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      const steps = 64;
-      for (const rb of RIBBONS) {
-        const top: [number, number][] = [];
-        const bot: [number, number][] = [];
-        for (let k = 0; k <= steps; k++) {
-          const u = k / steps;
-          const x = -0.1 * W + u * 1.2 * W + mouse.x * 16;
-          const yc = (rb.y + Math.sin(u * Math.PI * 2 * rb.freq + rb.phase + time * rb.speed * 6) * rb.amp) * H + mouse.y * 14;
-          const th = rb.thick * H * (0.2 + 0.8 * Math.sin(u * Math.PI)) * (0.85 + 0.15 * Math.sin(time * 0.0009 + u * 5 + rb.phase));
-          top.push([x, yc - th / 2]);
-          bot.push([x, yc + th / 2]);
+      const small = W < 640;
+
+      // dawn light rising from behind the clouds
+      const sun = ctx.createRadialGradient(W / 2, H * 0.98, 0, W / 2, H * 0.98, Math.max(W * 0.6, 420));
+      sun.addColorStop(0, "rgba(255,255,255,0.95)");
+      sun.addColorStop(0.18, "rgba(170,225,255,0.6)");
+      sun.addColorStop(0.45, "rgba(92,150,255,0.22)");
+      sun.addColorStop(1, "rgba(92,120,255,0)");
+      ctx.fillStyle = sun;
+      ctx.fillRect(0, 0, W, H);
+
+      CLOUD_LAYERS.forEach((L, li) => {
+        const cw = (small ? W * 0.75 : W * 0.32) * L.scale;
+        const ch = cw / 2;
+        const span = W + cw * 1.2;
+        ctx.globalAlpha = L.alpha;
+        ctx.filter = L.blur ? `blur(${L.blur}px)` : "none";
+        for (const cl of clouds[li]) {
+          const w = cw * cl.s;
+          const h = ch * cl.s;
+          const x = ((((cl.x * span + (time / 1000) * L.speed) % span) + span) % span) - cw * 0.6 + mouse.x * -L.par;
+          const y = (L.y + cl.dy) * H - h * 0.7 + mouse.y * -L.par * 0.4 + Math.sin(time * 0.0004 + cl.x * 9) * 3;
+          if (cl.flip) {
+            ctx.save();
+            ctx.translate(x + w, y);
+            ctx.scale(-1, 1);
+            ctx.drawImage(cl.img, 0, 0, w, h);
+            ctx.restore();
+          } else {
+            ctx.drawImage(cl.img, x, y, w, h);
+          }
         }
-        const g = ctx.createLinearGradient(0, 0, W, 0);
-        const shift = (Math.sin(time * 0.00025 + rb.phase) + 1) / 2;
-        g.addColorStop(0, `rgba(${rb.colors[0]},0)`);
-        g.addColorStop(0.15 + 0.2 * shift, `rgba(${rb.colors[0]},${rb.alpha})`);
-        g.addColorStop(0.5, `rgba(${rb.colors[1]},${rb.alpha})`);
-        g.addColorStop(0.65 + 0.2 * shift, `rgba(${rb.colors[2]},${rb.alpha})`);
-        g.addColorStop(1, `rgba(${rb.colors[2]},0)`);
-
-        ctx.filter = "blur(16px)";
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        top.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-        for (let i = bot.length - 1; i >= 0; i--) ctx.lineTo(bot[i][0], bot[i][1]);
-        ctx.closePath();
-        ctx.fill();
-        ctx.filter = "none";
-
-        // bright leading edge on top of the ribbon
-        const e = ctx.createLinearGradient(0, 0, W, 0);
-        e.addColorStop(0, "rgba(255,255,255,0)");
-        e.addColorStop(0.3 + 0.4 * shift, `rgba(255,255,255,${rb.alpha * 1.6})`);
-        e.addColorStop(1, "rgba(255,255,255,0)");
-        ctx.strokeStyle = e;
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        top.forEach(([x, y], i) => (i ? ctx.lineTo(x, y + 4) : ctx.moveTo(x, y + 4)));
-        ctx.stroke();
-      }
+      });
+      ctx.filter = "none";
+      ctx.globalAlpha = 1;
     };
 
     const tick = (now: number) => {
@@ -425,7 +481,7 @@ function HeroAurora() {
       ref={wrapRef}
       aria-hidden
       className="pointer-events-none absolute inset-x-0 top-0 h-[100svh] min-h-[640px] overflow-hidden"
-      style={{ maskImage: "linear-gradient(to bottom, #000 82%, transparent)", WebkitMaskImage: "linear-gradient(to bottom, #000 82%, transparent)" }}
+      style={{ maskImage: "linear-gradient(to bottom, #000 90%, transparent)", WebkitMaskImage: "linear-gradient(to bottom, #000 90%, transparent)" }}
     >
       <div ref={blobsRef} className="absolute inset-0 will-change-transform">
         <span className="st-blob st-blob-a" />
@@ -439,7 +495,6 @@ function HeroAurora() {
         style={{ background: "radial-gradient(closest-side, rgba(92,225,255,0.28), rgba(31,111,235,0.12) 45%, rgba(31,111,235,0) 75%)" }}
       />
       <canvas ref={canvasRef} className="absolute inset-0" />
-      <div className="st-horizon absolute left-1/2 top-[80%] h-[70vw] w-[150vw] -translate-x-1/2 rounded-[50%]" />
       {SPARKS.map((sp, i) => (
         <GeminiSpark
           key={i}
@@ -570,7 +625,7 @@ function Spotlight() {
           </a>
           <a
             href="#mission"
-            className="inline-flex items-center rounded-full border border-black/15 px-6 py-3.5 text-[15px] font-medium transition-colors duration-300 hover:border-black/40"
+            className="inline-flex items-center rounded-full border border-black/10 bg-white/70 px-6 py-3.5 text-[15px] font-medium backdrop-blur-md transition-colors duration-300 hover:border-black/30 hover:bg-white"
           >
             Meet the studio
           </a>
