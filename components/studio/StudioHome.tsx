@@ -655,7 +655,7 @@ function Constellation() {
     let orbitScale = 1;
     const F = 900;
     let nodes: { a: number; r: number; ex: number; ey: number }[] = [];
-    let galaxy = makeGalaxy(2600, 1100);
+    let galaxy = makeGalaxy(2600, 0);
     const dustImgs = ["120,200,255", "60,120,255", "150,110,255"].map(makeBlob);
     const blobs = NEBULA.map((b) => ({ ...b, img: makeBlob(b.c) }));
 
@@ -667,13 +667,13 @@ function Constellation() {
       CY = H * 0.57;
       R = small ? Math.min(W * 0.4, 165) : Math.min(W * 0.3, 400);
       G = small ? Math.max(W, H) * 0.55 : Math.max(W * 0.5, 620);
-      BH = small ? 34 : 56;
+      BH = small ? 28 : 52;
       DPR = Math.min(window.devicePixelRatio || 1, 1.75);
       canvas.width = Math.round(W * DPR);
       canvas.height = Math.round(H * DPR);
       canvas.style.width = `${W}px`;
       canvas.style.height = `${H}px`;
-      if (small && galaxy.groups.flat().length > 1500) galaxy = makeGalaxy(1300, 600);
+      if (small && galaxy.groups.flat().length > 1500) galaxy = makeGalaxy(1300, 0);
       const tile = small ? 60 : 76;
       const gap = small ? 26 : 40;
       const cols = Math.min(n, small ? 3 : Math.min(6, Math.ceil(Math.sqrt(n * 1.8))));
@@ -699,6 +699,129 @@ function Constellation() {
       const rect = section.getBoundingClientRect();
       const total = section.offsetHeight - window.innerHeight;
       return clamp01(-rect.top / Math.max(1, total));
+    };
+
+    // Accretion disk rings: random dash pattern per ring gives moving streaks.
+    const diskRings = Array.from({ length: 52 }, (_, k) => {
+      const rnd = seeded(7 + k * 13);
+      return { u: k / 51, dash: 1.2 + rnd() * 2.2, gap: 0.02 + rnd() * 0.12, phase: rnd() * 1000 };
+    });
+    const haloRings = Array.from({ length: 22 }, (_, k) => {
+      const rnd = seeded(101 + k * 7);
+      return { u: k / 21, dash: 1.4 + rnd() * 2.4, gap: 0.02 + rnd() * 0.1, phase: rnd() * 1000 };
+    });
+    const tone = (u: number) => {
+      // white-hot inside, Depup blue and violet toward the edge
+      const stops: [number, number, number][] = [
+        [255, 255, 255],
+        [214, 238, 255],
+        [140, 196, 255],
+        [92, 124, 255],
+        [124, 77, 255],
+      ];
+      const x = Math.min(0.999, Math.max(0, u)) * (stops.length - 1);
+      const i = Math.floor(x);
+      const f = x - i;
+      const A = stops[i];
+      const B = stops[i + 1];
+      return [A[0] + (B[0] - A[0]) * f, A[1] + (B[1] - A[1]) * f, A[2] + (B[2] - A[2]) * f].map(Math.round).join(",");
+    };
+
+    const drawBlackHole = (x: number, y: number, bh: number, alpha: number) => {
+      const INNER = 1.5;
+      const OUTER = 5.8;
+      const FLAT = 0.13;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-0.09);
+      ctx.globalCompositeOperation = "lighter";
+
+      const glow = ctx.createRadialGradient(0, 0, bh * 0.95, 0, 0, bh * 6.5);
+      glow.addColorStop(0, "rgba(220,240,255,0.22)");
+      glow.addColorStop(0.25, "rgba(110,160,255,0.16)");
+      glow.addColorStop(1, "rgba(60,80,255,0)");
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = glow;
+      ctx.fillRect(-bh * 6.5, -bh * 6.5, bh * 13, bh * 13);
+
+      const strokeRing = (r: number, ry: number, from: number, to: number, u: number, a: number, seed: { dash: number; gap: number; phase: number }, width: number) => {
+        const col = tone(u);
+        // Doppler beaming: the side moving toward us (left) is brighter.
+        const g = ctx.createLinearGradient(-r, 0, r, 0);
+        g.addColorStop(0, `rgba(${col},${Math.min(1, a * 1.4)})`);
+        g.addColorStop(0.5, `rgba(${col},${a})`);
+        g.addColorStop(1, `rgba(${col},${a * 0.35})`);
+        ctx.strokeStyle = g;
+        ctx.lineWidth = width;
+        ctx.setLineDash([r * seed.dash, r * seed.gap]);
+        ctx.lineDashOffset = -(time * 0.05 * Math.sqrt((bh * 2) / r) + seed.phase);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r, ry, 0, from, to);
+        ctx.stroke();
+      };
+
+      const step = ((OUTER - INNER) * bh) / diskRings.length;
+      const disk = (front: boolean) => {
+        for (const ring of diskRings) {
+          const r = bh * (INNER + (OUTER - INNER) * Math.pow(ring.u, 1.35));
+          const a = alpha * (0.03 + 0.3 * Math.pow(1 - ring.u, 1.8));
+          strokeRing(r, r * FLAT, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2, ring.u * 0.95, a, ring, Math.max(1, step * 1.1));
+        }
+      };
+
+      // 1. far side of the disk, behind the hole
+      disk(false);
+      // 2. lensed image of the far side, bent up over the top of the shadow
+      for (const ring of haloRings) {
+        const r = bh * (1.05 + 0.75 * Math.pow(ring.u, 1.15));
+        const a = alpha * (0.1 + 0.75 * Math.pow(1 - ring.u, 1.3));
+        strokeRing(r, r * 0.98, Math.PI - 0.28, Math.PI * 2 + 0.28, ring.u * 0.8, a, ring, Math.max(1.2, bh * 0.075));
+      }
+      // soft glow behind the lensed arc
+      const arcGlow = ctx.createRadialGradient(0, 0, bh * 1.02, 0, 0, bh * 1.9);
+      arcGlow.addColorStop(0, "rgba(225,242,255,0.5)");
+      arcGlow.addColorStop(1, "rgba(120,170,255,0)");
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = arcGlow;
+      ctx.beginPath();
+      ctx.arc(0, 0, bh * 1.9, Math.PI, Math.PI * 2);
+      ctx.fill();
+      // 3. fainter secondary image under the bottom
+      for (let k = 0; k < 6; k++) {
+        const r = bh * (1.05 + 0.05 * k);
+        strokeRing(r, r * 0.97, 0.15, Math.PI - 0.15, 0.1 + k * 0.08, alpha * (0.28 - k * 0.04), haloRings[k], bh * 0.05);
+      }
+      ctx.setLineDash([]);
+
+      // 4. the shadow itself
+      ctx.globalCompositeOperation = "source-over";
+      const shade = ctx.createRadialGradient(0, 0, bh * 0.7, 0, 0, bh * 1.02);
+      shade.addColorStop(0, "rgba(0,0,0,1)");
+      shade.addColorStop(0.92, "rgba(0,0,0,1)");
+      shade.addColorStop(1, "rgba(0,0,0,0.6)");
+      ctx.globalAlpha = Math.min(1, alpha * 1.2);
+      ctx.fillStyle = shade;
+      ctx.beginPath();
+      ctx.arc(0, 0, bh * 1.02, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 5. photon ring hugging the shadow
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = "rgba(190,230,255,0.9)";
+      ctx.shadowBlur = bh * 0.35;
+      ctx.strokeStyle = "rgba(240,250,255,0.95)";
+      ctx.lineWidth = Math.max(1, bh * 0.035);
+      ctx.beginPath();
+      ctx.arc(0, 0, bh * 1.03, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 6. near side of the disk, crossing in front of the hole
+      disk(true);
+      ctx.setLineDash([]);
+      ctx.restore();
+      ctx.globalCompositeOperation = "lighter";
     };
 
     const drawGalaxy = (p: number, tilt: number, boot: number, gather: number, flash: number) => {
@@ -753,59 +876,9 @@ function Constellation() {
         }
       });
 
-      // Black hole with accretion disk; back half drawn before the shadow, front half after.
-      const bh = BH * (1 - gather) * (0.5 + 0.5 * boot);
-      if (bh > 0.5) {
-        const glow = ctx.createRadialGradient(cx, CY, bh * 0.8, cx, CY, bh * 4.2);
-        glow.addColorStop(0, "rgba(140,210,255,0.55)");
-        glow.addColorStop(0.35, "rgba(92,140,255,0.18)");
-        glow.addColorStop(1, "rgba(60,80,255,0)");
-        ctx.globalAlpha = boot;
-        ctx.fillStyle = glow;
-        ctx.fillRect(cx - bh * 4.2, CY - bh * 4.2, bh * 8.4, bh * 8.4);
-
-        const diskSpin = time * 0.0009 + p * 3;
-        const drawDisk = (front: boolean) => {
-          galaxy.disk.forEach((group, gi) => {
-            ctx.fillStyle = DISK_COLORS[gi];
-            for (const st of group) {
-              const ang = st.a + diskSpin / st.r;
-              const sn = Math.sin(ang);
-              if (front !== sn > 0) continue;
-              const rr = st.r * bh;
-              const P = project(Math.cos(ang) * rr, sn * rr, st.y * bh);
-              const doppler = 0.75 + 0.25 * Math.cos(ang); // one side a little brighter, like a real disk
-              ctx.globalAlpha = boot * doppler * (0.5 + 0.5 * Math.sin(time * 0.004 + st.tw) ** 2);
-              const sz = st.size * P.s;
-              ctx.fillRect(P.x - sz / 2, P.y - sz / 2, sz, sz);
-            }
-          });
-        };
-        drawDisk(false);
-
-        ctx.globalCompositeOperation = "source-over";
-        const hole = ctx.createRadialGradient(cx, CY, 0, cx, CY, bh * 1.05);
-        hole.addColorStop(0, "rgba(0,0,0,1)");
-        hole.addColorStop(0.86, "rgba(0,0,0,1)");
-        hole.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.globalAlpha = boot;
-        ctx.fillStyle = hole;
-        ctx.beginPath();
-        ctx.arc(cx, CY, bh * 1.05, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.globalCompositeOperation = "lighter";
-        ctx.globalAlpha = boot * 0.9;
-        ctx.strokeStyle = "rgba(200,240,255,0.9)";
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = HOLO;
-        ctx.shadowBlur = 18;
-        ctx.beginPath();
-        ctx.arc(cx, CY, bh * 1.02, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        drawDisk(true);
-      }
+      // Gargantua-style black hole: lensed disk around a dark shadow.
+      const bh = BH * (1 - gather) * (0.55 + 0.45 * boot);
+      if (bh > 0.5) drawBlackHole(cx, CY, bh, boot * (1 - 0.4 * gather));
 
       if (flash > 0.01) {
         const f = ctx.createRadialGradient(cx, CY, 0, cx, CY, Math.max(W, H) * 0.6);
