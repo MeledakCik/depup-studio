@@ -189,6 +189,18 @@ html:has(.st-root) {
   to { background-position-x: 100%; }
 }
 
+/* Visible keyboard focus everywhere on the homepage. */
+.st-root :focus-visible {
+  outline: 2px solid #1f6feb;
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+.st-root #engineering :focus-visible,
+.st-root [aria-label="The Depup ecosystem"] :focus-visible,
+.st-root #mission :focus-visible {
+  outline-color: #8ab4ff;
+}
+
 /* Story progress bar. */
 .st-progress {
   transform-origin: left center;

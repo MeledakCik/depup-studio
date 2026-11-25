@@ -321,7 +321,7 @@ export function OfficePreview({ expanded = false }: { expanded?: boolean }) {
             <button type="button" aria-label="Cari dokumen" onClick={() => setScreen("documents")} className="grid h-8 w-8 place-items-center rounded-full bg-white text-[#111111]"><Search className="h-3.5 w-3.5" /></button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pb-3 [scrollbar-width:none]">
+          <div tabIndex={0} aria-label="App preview content" className="min-h-0 flex-1 overflow-y-auto px-3.5 pb-3 [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-[#1F6FEB]">
             <div className="pb-16"><ScreenContent screen={screen} /></div>
           </div>
 

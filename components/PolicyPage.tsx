@@ -41,7 +41,7 @@ export function PolicyPage({
           <h1 className="font-editorial-xl mt-3 text-4xl leading-tight sm:text-5xl">{product}</h1>
           <p className="mt-4 text-sm text-text-secondary">
             Berlaku sejak <time>{updated}</time> · Pengembang: {STUDIO.name} (
-            <a className="text-primary hover:underline" href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a>)
+            <a className="text-primary underline underline-offset-2 hover:no-underline" href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a>)
           </p>
         </div>
 

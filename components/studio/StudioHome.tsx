@@ -2099,7 +2099,7 @@ function StudioFooter() {
           <p className="font-display text-[22px] font-semibold leading-[1.25] tracking-[-0.015em]">
             Independent by nature.
             <br />
-            <span className="text-[#7B879C]">Connected by design.</span>
+            <span className="text-[#5E6A80]">Connected by design.</span>
           </p>
         </div>
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
@@ -2136,8 +2136,14 @@ export function StudioHome() {
   useReveal();
   return (
     <div className="st-root min-h-screen bg-[#F6F8FC] font-sans text-[#0A1428] antialiased selection:bg-[#0057C3] selection:text-[#F6F8FC]">
+      <a
+        href="#main"
+        className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-full bg-[#0057C3] px-5 py-3 text-[14px] font-medium text-white shadow-lg transition-transform focus:translate-y-0"
+      >
+        Skip to content
+      </a>
       <StudioNav />
-      <main>
+      <main id="main" tabIndex={-1} className="outline-none">
         <Spotlight />
         <Constellation />
         <Ecosystem />

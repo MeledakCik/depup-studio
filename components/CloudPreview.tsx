@@ -63,7 +63,7 @@ export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
                   <span className="block truncate text-[11px] text-slate-400">{d.domain}</span>
                 </span>
                 <span className="hidden rounded-full bg-white/[.06] px-2 py-1 text-[10px] text-slate-300 sm:inline">{d.platform}</span>
-                <span className="shrink-0 text-[10px] text-slate-500">{d.time}</span>
+                <span className="shrink-0 text-[10px] text-slate-400">{d.time}</span>
               </div>
             ))}
             {expanded && (
@@ -81,7 +81,7 @@ export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
               <p className="mt-1 text-[11px] text-slate-400">HTML/CSS/JS statis · langsung tayang</p>
             </div>
             <div className="space-y-2.5 rounded-xl border border-white/[.08] bg-white/[.03] p-4">
-              <p className="text-[11px] uppercase tracking-wider text-slate-500">Link aktif</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-400">Link aktif</p>
               <p className="truncate text-sm font-medium text-sky-300">tugas-web.depup.web.id</p>
               <p className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><Clock className="h-3.5 w-3.5" /> Kedaluwarsa dalam 7 hari</p>
             </div>
@@ -96,11 +96,11 @@ export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
               <span className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-slate-400"><Bot className="h-3.5 w-3.5" /> depup.cloud · deploy_project</span>
               <p>Selesai — <span className="text-sky-300">toko-kue.vercel.app</span> sudah tayang.</p>
             </div>
-            <p className="text-[11px] leading-5 text-slate-500">Konektor MCP memakai OAuth 2.0 + PKCE. Token platform tidak pernah dikirim ke chat.</p>
+            <p className="text-[11px] leading-5 text-slate-400">Konektor MCP memakai OAuth 2.0 + PKCE. Token platform tidak pernah dikirim ke chat.</p>
           </div>
         )}
       </div>
-      <p className="border-t border-white/10 px-4 py-2 text-[10px] text-slate-500">Data contoh untuk pratinjau.</p>
+      <p className="border-t border-white/10 px-4 py-2 text-[10px] text-slate-400">Data contoh untuk pratinjau.</p>
     </div>
   );
 }

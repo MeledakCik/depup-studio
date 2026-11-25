@@ -27,7 +27,7 @@ export default function PrivacyHubPage() {
         <h1 className="font-editorial-xl mt-3 text-4xl leading-tight sm:text-5xl">Privasi di semua produk {STUDIO.name}</h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">
           Setiap produk punya kebijakan privasi sendiri karena datanya berbeda. Semuanya dikelola oleh {STUDIO.name}; pertanyaan
-          dapat dikirim ke <a className="text-primary hover:underline" href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a>.
+          dapat dikirim ke <a className="text-primary underline underline-offset-2 hover:no-underline" href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a>.
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
