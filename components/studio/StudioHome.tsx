@@ -99,12 +99,16 @@ function useReveal() {
   }, []);
 }
 
-function Words({ text, start = 0, step = 70 }: { text: string; start?: number; step?: number }) {
+function Words({ text, start = 0, step = 70, wordClass = "" }: { text: string; start?: number; step?: number; wordClass?: string }) {
   const words = text.split(" ");
   return (
     <>
       {words.map((w, i) => (
-        <span key={i} className="st-word" style={EASE_DELAY(start + i * step)}>
+        <span
+          key={i}
+          className={`st-word ${wordClass}`}
+          style={{ ...EASE_DELAY(start + i * step), backgroundPosition: wordClass ? `${-i * 34}% 50%` : undefined }}
+        >
           {w}
           {i < words.length - 1 ? " " : ""}
         </span>
@@ -257,14 +261,19 @@ function StudioNav() {
 /* ---------- hero background: Gemini-style flowing light ---------- */
 
 const SPARKS = [
-  { x: 14, y: 22, s: 18, d: 0 },
-  { x: 86, y: 18, s: 14, d: -1.6 },
-  { x: 78, y: 62, s: 22, d: -3.1 },
-  { x: 22, y: 70, s: 12, d: -2.2 },
-  { x: 50, y: 10, s: 10, d: -4 },
-  { x: 92, y: 44, s: 10, d: -0.8 },
+  { x: 9, y: 26, s: 22, d: 0 },
+  { x: 90, y: 20, s: 16, d: -1.6 },
+  { x: 86, y: 66, s: 26, d: -3.1 },
+  { x: 13, y: 72, s: 14, d: -2.2 },
+  { x: 72, y: 9, s: 12, d: -4 },
 ];
-const STREAM_COLORS = ["#1F6FEB", "#5CE1FF", "#7C4DFF", "#0057C3", "#8AB4FF", "#4C8DFF", "#A78BFA"];
+
+/* Wide soft ribbons, Gemini-style: thick in the middle, thin at the ends, with a bright leading edge. */
+const RIBBONS = [
+  { y: 0.83, amp: 0.045, thick: 0.13, freq: 0.9, speed: 0.00022, phase: 0.4, colors: ["92,225,255", "31,111,235", "124,77,255"], alpha: 0.42 },
+  { y: 0.91, amp: 0.035, thick: 0.08, freq: 1.3, speed: -0.00018, phase: 2.1, colors: ["31,111,235", "124,77,255", "92,225,255"], alpha: 0.32 },
+  { y: 0.1, amp: 0.03, thick: 0.06, freq: 1.1, speed: 0.00014, phase: 4.2, colors: ["138,180,255", "92,225,255", "167,139,250"], alpha: 0.22 },
+];
 
 function GeminiSpark({ size, className, style }: { size: number; className?: string; style?: CSSProperties }) {
   return (
@@ -285,6 +294,7 @@ function HeroAurora() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const blobsRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const host = wrapRef.current;
@@ -299,22 +309,7 @@ function HeroAurora() {
     let running = false;
     let last = 0;
     let time = 0;
-    const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-
-    // Each stream is a light trail riding a slow wave: bright leading edge, fading tail.
-    const rnd = seeded(4242);
-    const streams = Array.from({ length: 9 }, (_, i) => ({
-      y: 0.18 + rnd() * 0.7,
-      amp: 0.04 + rnd() * 0.08,
-      freq: 1.2 + rnd() * 2.2,
-      phase: rnd() * Math.PI * 2,
-      speed: 0.035 + rnd() * 0.05,
-      len: 0.22 + rnd() * 0.3,
-      width: 1.2 + rnd() * 2.2,
-      head: rnd(),
-      color: STREAM_COLORS[i % STREAM_COLORS.length],
-      dir: i % 3 === 0 ? -1 : 1,
-    }));
+    const mouse = { x: 0, y: 0, tx: 0, ty: 0, px: -999, py: -999, tpx: -999, tpy: -999 };
 
     const size = () => {
       W = host.clientWidth;
@@ -326,44 +321,48 @@ function HeroAurora() {
       canvas.style.height = `${H}px`;
     };
 
-    const yAt = (st: (typeof streams)[number], u: number) =>
-      (st.y + Math.sin(u * Math.PI * st.freq + st.phase + time * 0.0004) * st.amp) * H + mouse.y * 18 * (st.width / 3);
-
     const draw = () => {
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      ctx.lineCap = "round";
-      for (const st of streams) {
-        const headU = st.dir > 0 ? st.head : 1 - st.head;
-        const tailU = headU - st.len * st.dir;
-        const steps = 48;
-        const g = ctx.createLinearGradient(tailU * W, 0, headU * W, 0);
-        g.addColorStop(0, `${st.color}00`);
-        g.addColorStop(0.75, `${st.color}55`);
-        g.addColorStop(1, `${st.color}EE`);
-        ctx.strokeStyle = g;
-        ctx.lineWidth = st.width;
-        ctx.shadowColor = st.color;
-        ctx.shadowBlur = 12;
-        ctx.beginPath();
+      const steps = 64;
+      for (const rb of RIBBONS) {
+        const top: [number, number][] = [];
+        const bot: [number, number][] = [];
         for (let k = 0; k <= steps; k++) {
-          const u = tailU + ((headU - tailU) * k) / steps;
-          const x = u * W + mouse.x * 14;
-          const y = yAt(st, u);
-          if (k === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+          const u = k / steps;
+          const x = -0.1 * W + u * 1.2 * W + mouse.x * 16;
+          const yc = (rb.y + Math.sin(u * Math.PI * 2 * rb.freq + rb.phase + time * rb.speed * 6) * rb.amp) * H + mouse.y * 14;
+          const th = rb.thick * H * (0.2 + 0.8 * Math.sin(u * Math.PI)) * (0.85 + 0.15 * Math.sin(time * 0.0009 + u * 5 + rb.phase));
+          top.push([x, yc - th / 2]);
+          bot.push([x, yc + th / 2]);
         }
+        const g = ctx.createLinearGradient(0, 0, W, 0);
+        const shift = (Math.sin(time * 0.00025 + rb.phase) + 1) / 2;
+        g.addColorStop(0, `rgba(${rb.colors[0]},0)`);
+        g.addColorStop(0.15 + 0.2 * shift, `rgba(${rb.colors[0]},${rb.alpha})`);
+        g.addColorStop(0.5, `rgba(${rb.colors[1]},${rb.alpha})`);
+        g.addColorStop(0.65 + 0.2 * shift, `rgba(${rb.colors[2]},${rb.alpha})`);
+        g.addColorStop(1, `rgba(${rb.colors[2]},0)`);
+
+        ctx.filter = "blur(16px)";
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        top.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+        for (let i = bot.length - 1; i >= 0; i--) ctx.lineTo(bot[i][0], bot[i][1]);
+        ctx.closePath();
+        ctx.fill();
+        ctx.filter = "none";
+
+        // bright leading edge on top of the ribbon
+        const e = ctx.createLinearGradient(0, 0, W, 0);
+        e.addColorStop(0, "rgba(255,255,255,0)");
+        e.addColorStop(0.3 + 0.4 * shift, `rgba(255,255,255,${rb.alpha * 1.6})`);
+        e.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.strokeStyle = e;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        top.forEach(([x, y], i) => (i ? ctx.lineTo(x, y + 4) : ctx.moveTo(x, y + 4)));
         ctx.stroke();
-        // glowing head
-        const hx = headU * W + mouse.x * 14;
-        const hy = yAt(st, headU);
-        const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, st.width * 6);
-        hg.addColorStop(0, "rgba(255,255,255,0.95)");
-        hg.addColorStop(0.3, `${st.color}AA`);
-        hg.addColorStop(1, `${st.color}00`);
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = hg;
-        ctx.fillRect(hx - st.width * 6, hy - st.width * 6, st.width * 12, st.width * 12);
       }
     };
 
@@ -371,13 +370,14 @@ function HeroAurora() {
       const dt = last ? Math.min(64, now - last) : 16;
       last = now;
       time += dt;
-      mouse.x += (mouse.tx - mouse.x) * (1 - Math.exp(-dt / 400));
-      mouse.y += (mouse.ty - mouse.y) * (1 - Math.exp(-dt / 400));
-      for (const st of streams) {
-        st.head += (st.speed * dt) / 1000;
-        if (st.head > 1 + st.len) st.head = -0.05;
-      }
+      const ease = 1 - Math.exp(-dt / 400);
+      mouse.x += (mouse.tx - mouse.x) * ease;
+      mouse.y += (mouse.ty - mouse.y) * ease;
+      const ease2 = 1 - Math.exp(-dt / 160);
+      mouse.px += (mouse.tpx - mouse.px) * ease2;
+      mouse.py += (mouse.tpy - mouse.py) * ease2;
       if (blobsRef.current) blobsRef.current.style.transform = `translate3d(${mouse.x * -24}px, ${mouse.y * -18}px, 0)`;
+      if (cursorRef.current) cursorRef.current.style.transform = `translate3d(${mouse.px - 260}px, ${mouse.py - 260}px, 0)`;
       draw();
       if (running) raf = requestAnimationFrame(tick);
     };
@@ -385,6 +385,14 @@ function HeroAurora() {
     const onMove = (e: PointerEvent) => {
       mouse.tx = (e.clientX / window.innerWidth - 0.5) * 2;
       mouse.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+      const r = host.getBoundingClientRect();
+      mouse.tpx = e.clientX - r.left;
+      mouse.tpy = e.clientY - r.top;
+      if (mouse.px < -900) {
+        mouse.px = mouse.tpx;
+        mouse.py = mouse.tpy;
+      }
+      if (cursorRef.current) cursorRef.current.style.opacity = "1";
     };
 
     size();
@@ -413,14 +421,25 @@ function HeroAurora() {
   }, []);
 
   return (
-    <div ref={wrapRef} aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[100svh] min-h-[640px] overflow-hidden">
+    <div
+      ref={wrapRef}
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-0 h-[100svh] min-h-[640px] overflow-hidden"
+      style={{ maskImage: "linear-gradient(to bottom, #000 82%, transparent)", WebkitMaskImage: "linear-gradient(to bottom, #000 82%, transparent)" }}
+    >
       <div ref={blobsRef} className="absolute inset-0 will-change-transform">
         <span className="st-blob st-blob-a" />
         <span className="st-blob st-blob-b" />
         <span className="st-blob st-blob-c" />
         <span className="st-blob st-blob-d" />
       </div>
-      <canvas ref={canvasRef} className="absolute inset-0 opacity-70" />
+      <div
+        ref={cursorRef}
+        className="absolute left-0 top-0 h-[520px] w-[520px] rounded-full opacity-0 transition-opacity duration-700"
+        style={{ background: "radial-gradient(closest-side, rgba(92,225,255,0.28), rgba(31,111,235,0.12) 45%, rgba(31,111,235,0) 75%)" }}
+      />
+      <canvas ref={canvasRef} className="absolute inset-0" />
+      <div className="st-horizon absolute left-1/2 top-[80%] h-[70vw] w-[150vw] -translate-x-1/2 rounded-[50%]" />
       {SPARKS.map((sp, i) => (
         <GeminiSpark
           key={i}
@@ -429,8 +448,7 @@ function HeroAurora() {
           style={{ left: `${sp.x}%`, top: `${sp.y}%`, animationDelay: `${sp.d}s` }}
         />
       ))}
-      <div className="absolute inset-0" style={{ background: "radial-gradient(55% 45% at 50% 42%, rgba(246,248,252,0.82), rgba(246,248,252,0) 75%)" }} />
-      <div className="absolute inset-x-0 bottom-0 h-40" style={{ background: "linear-gradient(to bottom, rgba(246,248,252,0), #F6F8FC)" }} />
+      <div className="absolute inset-0" style={{ background: "radial-gradient(50% 42% at 50% 42%, rgba(246,248,252,0.78), rgba(246,248,252,0) 78%)" }} />
     </div>
   );
 }
@@ -537,7 +555,7 @@ function Spotlight() {
         <h1 className="mx-auto mt-6 max-w-[1000px] font-display text-[clamp(52px,9vw,128px)] font-semibold leading-[0.98] tracking-[-0.045em]">
           <Words text="One studio." start={150} />
           <br />
-          <span className="text-[#0057C3]"><Words text="Made to move." start={400} /></span>
+          <span className="text-[#0057C3]"><Words text="Made to move." start={400} wordClass="st-shimmer" /></span>
         </h1>
         <p className="st-rise mx-auto mt-8 max-w-[620px] text-[19px] leading-[1.55] text-[#2E3A50] md:text-[21px]" style={EASE_DELAY(750)}>
           Software, infrastructure, and useful tools designed around the way people get things done.

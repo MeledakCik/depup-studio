@@ -175,6 +175,30 @@ html:has(.st-root) {
   to { transform: scale(1.9); opacity: 0; }
 }
 
+/* Headline shimmer: a slow flowing gradient through the words. */
+.st-shimmer {
+  background-image: linear-gradient(100deg, #0057c3 0%, #1f6feb 22%, #3fb8ff 38%, #7c4dff 52%, #1f6feb 70%, #0057c3 100%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: st-shimmer 9s ease-in-out infinite alternate;
+}
+@keyframes st-shimmer {
+  from { background-position-x: 0%; }
+  to { background-position-x: 100%; }
+}
+
+/* Horizon: a lit arc the product stage rises out of. */
+.st-horizon {
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  background: radial-gradient(50% 30% at 50% 0%, rgba(92, 225, 255, 0.35), rgba(31, 111, 235, 0.12) 55%, rgba(31, 111, 235, 0) 100%);
+  box-shadow:
+    0 -10px 40px rgba(92, 225, 255, 0.45),
+    0 -40px 120px rgba(31, 111, 235, 0.35),
+    inset 0 30px 80px rgba(124, 77, 255, 0.25);
+}
+
 /* Story progress bar. */
 .st-progress {
   transform-origin: left center;
@@ -264,7 +288,8 @@ html:has(.st-root) {
   .st-float,
   .st-pulse,
   .st-blob,
-  .st-spark {
+  .st-spark,
+  .st-shimmer {
     animation: none !important;
   }
   .st-lift:hover {
