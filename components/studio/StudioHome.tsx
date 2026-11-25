@@ -545,13 +545,26 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const range = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 
+const HOLO = "#5CE1FF";
+const DUST = Array.from({ length: 22 }, (_, i) => ({
+  left: 50 + Math.sin(i * 12.9898) * 16,
+  delay: -((i * 0.73) % 6),
+  dur: 5 + ((i * 1.7) % 4),
+  size: 1 + (i % 3),
+}));
+
 function Constellation() {
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const tileRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const iconRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const holoRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const labelRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const lineRefs = useRef<(SVGLineElement | null)[]>([]);
   const coreRef = useRef<HTMLDivElement>(null);
+  const ringsRef = useRef<HTMLDivElement>(null);
+  const beamRef = useRef<HTMLDivElement>(null);
+  const fxRef = useRef<HTMLDivElement>(null);
   const copyA = useRef<HTMLDivElement>(null);
   const copyB = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
@@ -562,112 +575,224 @@ function Constellation() {
     const stage = stageRef.current;
     if (!section || !stage) return;
     const still = reduced();
+
     let raf = 0;
-    let layout: { sx: number; sy: number; ss: number; ex: number; ey: number }[] = [];
-    let half = { w: 0, h: 0 };
+    let running = false;
+    let last = 0;
+    let cur = still ? 1 : 0;
+    let yawT = 0;
+    let time = 0;
+    let W = 0;
+    let H = 0;
+    let CY = 0;
+    let R = 300;
+    let orbitScale = 1;
+    const F = 900;
+    let nodes: { a: number; r: number; y: number; ex: number; ey: number }[] = [];
 
     const computeLayout = () => {
-      const w = stage.clientWidth;
-      const h = stage.clientHeight;
-      half = { w: w / 2, h: h / 2 };
-      const small = w < 640;
+      W = stage.clientWidth;
+      H = stage.clientHeight;
+      const small = W < 640;
+      orbitScale = small ? 0.68 : 1;
+      CY = H * 0.57;
+      R = small ? Math.min(W * 0.4, 170) : Math.min(W * 0.32, 420);
       const tile = small ? 60 : 76;
       const gap = small ? 26 : 40;
       const cols = Math.min(n, small ? 3 : Math.min(6, Math.ceil(Math.sqrt(n * 1.8))));
       const rows = Math.ceil(n / cols);
       const cell = tile + gap;
-      const rx = Math.min(w * 0.42, 520);
-      const ry = Math.min(h * 0.3, 260);
-      const golden = Math.PI * (3 - Math.sqrt(5));
-      layout = SYSTEMS.map((_, i) => {
-        const a = i * golden + 0.6;
-        const r = 0.55 + 0.45 * (((i * 7) % n) / Math.max(1, n - 1));
+      const outer = Math.ceil(n * 0.6);
+      nodes = SYSTEMS.map((_, i) => {
+        const onOuter = i < outer;
+        const k = onOuter ? i : i - outer;
+        const count = onOuter ? outer : Math.max(1, n - outer);
         const row = Math.floor(i / cols);
         const inRow = row === rows - 1 ? n - row * cols : cols;
-        const col = i % cols;
         return {
-          sx: Math.cos(a) * rx * r,
-          sy: Math.sin(a) * ry * r,
-          ss: 0.7 + 0.45 * r,
-          ex: (col - (inRow - 1) / 2) * cell,
-          ey: (row - (rows - 1) / 2) * (cell + (small ? 14 : 18)) + (small ? 40 : 56),
+          a: (k / count) * Math.PI * 2 + (onOuter ? 0 : Math.PI / count),
+          r: onOuter ? 1 : 0.58,
+          y: onOuter ? 0 : -R * 0.16,
+          ex: ((i % cols) - (inRow - 1) / 2) * cell,
+          ey: (row - (rows - 1) / 2) * (cell + (small ? 14 : 18)) + (small ? -10 : 0),
         };
       });
+      if (ringsRef.current) {
+        ringsRef.current.style.width = `${R * 2}px`;
+        ringsRef.current.style.height = `${R * 2}px`;
+      }
+      if (fxRef.current) fxRef.current.style.perspectiveOrigin = `50% ${CY}px`;
     };
 
-    const frame = () => {
+    const targetProgress = () => {
       const rect = section.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const total = section.offsetHeight - vh;
-      const p = still ? 1 : clamp01(-rect.top / Math.max(1, total));
-      const appear = range(p, 0, 0.12);
-      const gather = easeInOut(range(p, 0.18, 0.72));
-      const settle = range(p, 0.7, 0.86);
-      const spin = (1 - gather) * p * 1.4;
+      const total = section.offsetHeight - window.innerHeight;
+      return clamp01(-rect.top / Math.max(1, total));
+    };
 
-      layout.forEach((L, i) => {
-        const cos = Math.cos(spin);
-        const sin = Math.sin(spin);
-        const ox = L.sx * cos - L.sy * sin * 0.6;
-        const oy = L.sx * sin * 0.6 + L.sy * cos;
-        const x = ox + (L.ex - ox) * gather;
-        const y = oy + (L.ey - oy) * gather;
-        const sc = (L.ss + (1 - L.ss) * gather) * (0.6 + 0.4 * appear);
+    const render = () => {
+      const p = cur;
+      const boot = easeInOut(range(p, 0, 0.16));
+      const rise = easeInOut(range(p, 0.4, 0.66));
+      const gather = easeInOut(range(p, 0.6, 0.88));
+      const material = range(p, 0.66, 0.9);
+      const settle = range(p, 0.84, 0.96);
+      const spin = 1 - easeInOut(range(p, 0.5, 0.78));
+      const flicker = boot < 1 ? 0.75 + 0.25 * Math.abs(Math.sin(time * 0.045)) : 1;
+      const tilt = (1.08 * (1 - rise)) as number; // radians, ~62deg -> 0
+      const yaw = yawT + p * 2.6;
+      const cosT = Math.cos(tilt);
+      const sinT = Math.sin(tilt);
+      const cx = W / 2;
+
+      nodes.forEach((N, i) => {
+        const a = N.a + yaw;
+        const ox = Math.cos(a) * R * N.r;
+        const oy = Math.sin(a) * R * N.r + N.y + Math.sin(time * 0.0011 + i * 1.3) * 7 * spin;
+        const y1 = oy * cosT;
+        const z1 = -oy * sinT + (N.y ? 0 : 0);
+        const depth = Math.sin(a) * N.r; // -1 back .. 1 front (bottom = front)
+        const zz = -depth * R * sinT;
+        const s = F / (F + zz);
+        const px = ox * s;
+        const py = y1 * s;
+        const x = px + (N.ex - px) * gather;
+        const y = py + (N.ey - py) * gather;
+        const front = (depth + 1) / 2;
+        const sc = (s * orbitScale * (0.82 + 0.18 * front) * (1 - gather) + gather) * (0.35 + 0.65 * boot);
+        const op = boot * flicker * ((1 - gather) * (0.35 + 0.65 * front) + gather);
+        const turn = (1 - gather) * Math.cos(a) * -28;
         const el = tileRefs.current[i];
         if (el) {
-          el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${sc})`;
-          el.style.opacity = String(Math.min(1, appear * 1.2) * (0.55 + 0.45 * Math.max(gather, L.ss - 0.5)));
+          el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) perspective(700px) rotateY(${turn}deg) rotateX(${(1 - rise) * 18}deg) scale(${sc})`;
+          el.style.opacity = String(op);
+          el.style.zIndex = String(Math.round(100 + front * 100));
         }
+        const ic = iconRefs.current[i];
+        if (ic) ic.style.opacity = String(0.25 + 0.75 * material);
+        const ho = holoRefs.current[i];
+        if (ho) ho.style.opacity = String(1 - material);
         const lb = labelRefs.current[i];
         if (lb) lb.style.opacity = String(settle);
         const ln = lineRefs.current[i];
         if (ln) {
-          ln.setAttribute("x2", String(half.w + x));
-          ln.setAttribute("y2", String(half.h + y));
-          ln.style.opacity = String(appear * (1 - gather) * 0.5);
+          ln.setAttribute("x1", String(cx));
+          ln.setAttribute("y1", String(CY));
+          ln.setAttribute("x2", String(cx + x));
+          ln.setAttribute("y2", String(CY + y));
+          ln.style.opacity = String(boot * (1 - gather) * (0.15 + 0.5 * front));
         }
+        void z1;
       });
-      if (coreRef.current) {
-        const c = 1 - easeInOut(range(p, 0.3, 0.62));
-        coreRef.current.style.opacity = String(c * Math.max(appear, 0.4));
-        coreRef.current.style.transform = `translate(-50%, -50%) scale(${0.7 + 0.3 * c + 0.08 * appear})`;
+
+      if (ringsRef.current) {
+        ringsRef.current.style.transform = `translate(-50%, -50%) rotateX(${(tilt * 180) / Math.PI}deg) scale(${(0.4 + 0.6 * boot) * (1 - 0.22 * rise) * (1 - 0.3 * gather)})`;
+        ringsRef.current.style.opacity = String(boot * flicker * (1 - gather));
+        ringsRef.current.style.top = `${CY}px`;
       }
-      const t = range(p, 0.38, 0.5);
+      if (beamRef.current) {
+        beamRef.current.style.opacity = String(boot * (1 - rise) * 0.55);
+        beamRef.current.style.top = `${CY}px`;
+        beamRef.current.style.transform = `translateX(-50%) scaleY(${0.3 + 0.7 * boot})`;
+      }
+      if (coreRef.current) {
+        const c = 1 - easeInOut(range(p, 0.56, 0.74));
+        coreRef.current.style.opacity = String(c * boot * flicker);
+        coreRef.current.style.top = `${CY}px`;
+        coreRef.current.style.transform = `translate(-50%, -50%) translateY(${Math.sin(time * 0.0016) * 6 * spin}px) scale(${0.6 + 0.4 * boot - 0.25 * (1 - c)})`;
+      }
+      if (fxRef.current) fxRef.current.style.setProperty("--holo", String(boot * (1 - gather)));
+      const tOut = easeInOut(range(p, 0.43, 0.5));
+      const tIn = easeInOut(range(p, 0.5, 0.58));
       if (copyA.current) {
-        copyA.current.style.opacity = String(1 - t);
-        copyA.current.style.transform = `translate3d(0, ${-16 * t}px, 0)`;
+        copyA.current.style.opacity = String(1 - tOut);
+        copyA.current.style.transform = `translate3d(0, ${-22 * tOut}px, 0)`;
+        copyA.current.style.filter = `blur(${6 * tOut}px)`;
       }
       if (copyB.current) {
-        copyB.current.style.opacity = String(t);
-        copyB.current.style.transform = `translate3d(0, ${16 * (1 - t)}px, 0)`;
+        copyB.current.style.opacity = String(tIn);
+        copyB.current.style.transform = `translate3d(0, ${22 * (1 - tIn)}px, 0)`;
+        copyB.current.style.filter = `blur(${6 * (1 - tIn)}px)`;
       }
       if (barRef.current) barRef.current.style.transform = `scaleX(${p})`;
     };
 
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(frame);
+    const tick = (now: number) => {
+      const dt = last ? Math.min(64, now - last) : 16;
+      last = now;
+      time += dt;
+      const target = targetProgress();
+      // Critically-damped follow: smooth even when the wheel jumps.
+      cur += (target - cur) * (1 - Math.exp(-dt / 140));
+      if (Math.abs(target - cur) < 0.0005) cur = target;
+      const spin = 1 - easeInOut(range(cur, 0.5, 0.78));
+      yawT += dt * 0.00022 * spin;
+      render();
+      if (running) raf = requestAnimationFrame(tick);
     };
+
+    computeLayout();
+    if (still) {
+      render();
+    } else {
+      cur = targetProgress();
+      render();
+    }
+
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (still) return;
+        if (e.isIntersecting && !running) {
+          running = true;
+          last = 0;
+          raf = requestAnimationFrame(tick);
+        } else if (!e.isIntersecting && running) {
+          running = false;
+          cancelAnimationFrame(raf);
+        }
+      },
+      { rootMargin: "200px 0px" }
+    );
+    io.observe(section);
     const onResize = () => {
       computeLayout();
-      onScroll();
+      render();
     };
-    computeLayout();
-    frame();
-    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
     return () => {
+      running = false;
       cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
+      io.disconnect();
       window.removeEventListener("resize", onResize);
     };
   }, [n]);
 
   return (
-    <section ref={sectionRef} aria-label="The Depup ecosystem" className="relative h-[230vh] bg-[#061634] text-[#F3F6FC] md:h-[260vh]">
+    <section ref={sectionRef} aria-label="The Depup ecosystem" className="relative h-[280vh] bg-[#030B1F] text-[#F3F6FC] md:h-[330vh]">
       <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(55% 50% at 50% 55%, rgba(31,111,235,0.35), transparent 70%)" }} />
-        <div aria-hidden className="st-grid pointer-events-none absolute inset-0 opacity-[0.07]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(60% 55% at 50% 60%, rgba(31,111,235,0.32), transparent 72%)" }} />
+        <div aria-hidden className="st-grid pointer-events-none absolute inset-0 opacity-[0.06]" />
+
+        <div ref={fxRef} aria-hidden className="st-holo pointer-events-none absolute inset-0" style={{ perspective: "900px" }}>
+          <div ref={beamRef} className="st-beam absolute left-1/2" />
+          <div ref={ringsRef} className="absolute left-1/2" style={{ transformStyle: "preserve-3d" }}>
+            <span className="st-ring absolute inset-0 rounded-full border" style={{ borderColor: `${HOLO}55` }} />
+            <span className="st-ring st-spin absolute inset-[7%] rounded-full border border-dashed" style={{ borderColor: `${HOLO}66` }} />
+            <span className="st-ring st-arcs st-spin-rev absolute inset-[16%] rounded-full" />
+            <span className="st-ring st-ticks st-spin-slow absolute inset-[-6%] rounded-full" />
+            <span className="st-ring absolute inset-[30%] rounded-full" style={{ background: `radial-gradient(closest-side, ${HOLO}33, transparent)` }} />
+          </div>
+          <div className="absolute inset-x-0 bottom-0 h-[60%]">
+            {DUST.map((d, i) => (
+              <span
+                key={i}
+                className="st-dust absolute bottom-0 rounded-full"
+                style={{ left: `${d.left}%`, width: d.size, height: d.size, background: HOLO, animationDelay: `${d.delay}s`, animationDuration: `${d.dur}s` }}
+              />
+            ))}
+          </div>
+          <div className="st-scan absolute inset-0" />
+        </div>
 
         <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full">
           {SYSTEMS.map((s, i) => (
@@ -676,11 +801,7 @@ function Constellation() {
               ref={(el) => {
                 lineRefs.current[i] = el;
               }}
-              x1="50%"
-              y1="50%"
-              x2="50%"
-              y2="50%"
-              stroke="#8AB4FF"
+              stroke={HOLO}
               strokeWidth="1"
               strokeDasharray="2 6"
               style={{ opacity: 0 }}
@@ -691,75 +812,90 @@ function Constellation() {
         <div
           ref={coreRef}
           aria-hidden
-          className="absolute left-1/2 top-1/2 grid h-24 w-24 place-items-center rounded-[28px] bg-[#0057C3] font-display text-[40px] font-semibold text-white shadow-[0_0_80px_rgba(31,111,235,0.6)] md:h-28 md:w-28"
-          style={{ transform: "translate(-50%, -50%)" }}
+          className="absolute left-1/2 z-[150] grid h-16 w-16 place-items-center rounded-[20px] bg-[#0057C3]/90 font-display text-[28px] font-semibold text-white md:h-24 md:w-24 md:rounded-[24px] md:text-[40px]"
+          style={{ boxShadow: `0 0 60px ${HOLO}88, inset 0 0 24px ${HOLO}55`, border: `1px solid ${HOLO}99` }}
         >
-          <span className="st-pulse absolute inset-0 rounded-[28px] border border-[#8AB4FF]/50" />
+          <span className="st-pulse absolute inset-0 rounded-[20px] border md:rounded-[24px]" style={{ borderColor: `${HOLO}80` }} />
           D
         </div>
 
-        {SYSTEMS.map((s, i) => {
-          const color = tileColor(ACCENT_HEX[s.accent]);
-          const glow = APP_LOGOS[s.id]?.bg ?? (APP_LOGOS[s.id]?.src ? "#0037FF" : color);
-          return (
-            <a
-              key={s.id}
-              href={safeHref(s.href) === "#ecosystem" ? "#ecosystem" : safeHref(s.href)}
-              ref={(el) => {
-                tileRefs.current[i] = el;
-              }}
-              aria-label={s.name}
-              className="group absolute left-1/2 top-1/2 flex flex-col items-center will-change-transform"
-              style={{ opacity: 0 }}
-            >
-              <span className="st-float block" style={{ animationDelay: `${(i % 5) * -1.3}s` }}>
-                <span
-                  className="block rounded-[18px] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-105 sm:rounded-[22px]"
-                  style={{ boxShadow: `0 14px 44px -14px ${glow}aa` }}
-                >
-                  <AppIcon
-                    id={s.id}
-                    category={s.category}
-                    tone="dark"
-                    className="block h-[60px] w-[60px] overflow-hidden rounded-[18px] sm:h-[76px] sm:w-[76px] sm:rounded-[22px]"
-                    glyphClass="h-7 w-7 sm:h-9 sm:w-9"
-                  />
-                </span>
-              </span>
-              <span
+        <div className="absolute left-1/2" style={{ top: "57%" }}>
+          {SYSTEMS.map((s, i) => {
+            const color = tileColor(ACCENT_HEX[s.accent]);
+            const glow = APP_LOGOS[s.id]?.bg ?? (APP_LOGOS[s.id]?.src ? "#0037FF" : color);
+            return (
+              <a
+                key={s.id}
+                href={safeHref(s.href)}
                 ref={(el) => {
-                  labelRefs.current[i] = el;
+                  tileRefs.current[i] = el;
                 }}
-                className="mt-3 w-[80px] truncate text-center text-[11px] text-[#C9D5EC] sm:w-[108px] sm:text-[13px]"
+                aria-label={s.name}
+                className="group absolute left-0 top-0 flex flex-col items-center will-change-transform"
                 style={{ opacity: 0 }}
               >
-                {shortName(s.name)}
-              </span>
-            </a>
-          );
-        })}
+                <span
+                  className="relative block rounded-[18px] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-105 sm:rounded-[22px]"
+                  style={{ boxShadow: `0 14px 44px -14px ${glow}aa` }}
+                >
+                  <span
+                    ref={(el) => {
+                      iconRefs.current[i] = el;
+                    }}
+                    className="block"
+                    style={{ opacity: 0.25 }}
+                  >
+                    <AppIcon
+                      id={s.id}
+                      category={s.category}
+                      tone="dark"
+                      className="block h-[60px] w-[60px] overflow-hidden rounded-[18px] sm:h-[76px] sm:w-[76px] sm:rounded-[22px]"
+                      glyphClass="h-7 w-7 sm:h-9 sm:w-9"
+                    />
+                  </span>
+                  <span
+                    ref={(el) => {
+                      holoRefs.current[i] = el;
+                    }}
+                    aria-hidden
+                    className="st-holo-tile pointer-events-none absolute inset-0 rounded-[18px] sm:rounded-[22px]"
+                  />
+                </span>
+                <span
+                  ref={(el) => {
+                    labelRefs.current[i] = el;
+                  }}
+                  className="mt-3 w-[80px] truncate text-center text-[11px] text-[#C9D5EC] sm:w-[108px] sm:text-[13px]"
+                  style={{ opacity: 0 }}
+                >
+                  {shortName(s.name)}
+                </span>
+              </a>
+            );
+          })}
+        </div>
 
-        <div className={`${wrap} pointer-events-none absolute inset-x-0 top-[13vh] text-center md:top-[11vh]`}>
+        <div className={`${wrap} pointer-events-none absolute inset-x-0 top-[12vh] z-[250] text-center md:top-[10vh]`}>
           <div ref={copyA} className="absolute inset-x-0">
-            <p className={`${eyebrow} text-[#8AB4FF]`}>The Depup ecosystem</p>
+            <p className={`${eyebrow} text-[#5CE1FF]`}>The Depup ecosystem</p>
             <h2 className="mx-auto mt-4 max-w-[760px] font-display text-[clamp(30px,4.4vw,56px)] font-semibold leading-[1.05] tracking-[-0.035em]">
               Every project starts as its own idea.
             </h2>
           </div>
           <div ref={copyB} className="absolute inset-x-0" style={{ opacity: 0 }}>
-            <p className={`${eyebrow} text-[#8AB4FF]`}>{n} systems · and counting</p>
+            <p className={`${eyebrow} text-[#5CE1FF]`}>{n} systems · and counting</p>
             <h2 className="mx-auto mt-4 max-w-[760px] font-display text-[clamp(30px,4.4vw,56px)] font-semibold leading-[1.05] tracking-[-0.035em]">
               Then they move as one studio.
             </h2>
           </div>
         </div>
 
-        <div className={`${wrap} absolute inset-x-0 bottom-8 flex items-center gap-4`}>
+        <div className={`${wrap} absolute inset-x-0 bottom-8 z-[250] flex items-center gap-4`}>
           <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#8FA3C7]">Scroll</span>
           <div className="h-px flex-1 overflow-hidden bg-white/15">
-            <div ref={barRef} className="h-full origin-left bg-[#8AB4FF]" style={{ transform: "scaleX(0)" }} />
+            <div ref={barRef} className="h-full origin-left" style={{ transform: "scaleX(0)", background: HOLO }} />
           </div>
-          <a href="#ecosystem" className="pointer-events-auto font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C9D5EC] hover:text-white">
+          <a href="#ecosystem" className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C9D5EC] hover:text-white">
             Skip to systems
           </a>
         </div>
