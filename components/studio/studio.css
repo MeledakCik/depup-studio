@@ -106,29 +106,29 @@ html:has(.st-root) {
 .st-blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(70px);
   opacity: 0.55;
   will-change: transform;
+  /* Already soft radial gradients: no blur filter, which was the most expensive thing on the page. */
 }
 .st-blob-a {
   width: 46vw; height: 46vw; left: -8vw; top: 4%;
-  background: radial-gradient(circle at 40% 40%, #5ce1ff, rgba(92, 225, 255, 0) 70%);
+  background: radial-gradient(closest-side, rgba(92, 225, 255, 0.95), rgba(92, 225, 255, 0.45) 45%, rgba(92, 225, 255, 0) 100%);
   animation: st-drift-a 22s ease-in-out infinite alternate;
 }
 .st-blob-b {
   width: 52vw; height: 52vw; right: -12vw; top: -10%;
-  background: radial-gradient(circle at 50% 50%, #1f6feb, rgba(31, 111, 235, 0) 70%);
+  background: radial-gradient(closest-side, rgba(31, 111, 235, 0.9), rgba(31, 111, 235, 0.4) 45%, rgba(31, 111, 235, 0) 100%);
   animation: st-drift-b 26s ease-in-out infinite alternate;
 }
 .st-blob-c {
   width: 40vw; height: 40vw; right: 8vw; top: 45%;
-  background: radial-gradient(circle at 50% 50%, #7c4dff, rgba(124, 77, 255, 0) 70%);
+  background: radial-gradient(closest-side, rgba(124, 77, 255, 0.9), rgba(124, 77, 255, 0.4) 45%, rgba(124, 77, 255, 0) 100%);
   opacity: 0.4;
   animation: st-drift-c 30s ease-in-out infinite alternate;
 }
 .st-blob-d {
   width: 36vw; height: 36vw; left: 18vw; top: 55%;
-  background: radial-gradient(circle at 50% 50%, #8ab4ff, rgba(138, 180, 255, 0) 70%);
+  background: radial-gradient(closest-side, rgba(138, 180, 255, 0.9), rgba(138, 180, 255, 0.4) 45%, rgba(138, 180, 255, 0) 100%);
   animation: st-drift-a 34s ease-in-out infinite alternate-reverse;
 }
 @keyframes st-drift-a {

@@ -455,14 +455,30 @@ function HeroAurora() {
     const size = () => {
       W = host.clientWidth;
       H = host.clientHeight;
-      DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+      DPR = 1; // clouds are soft; full-resolution canvas costs more than it shows
       canvas.width = Math.round(W * DPR);
       canvas.height = Math.round(H * DPR);
       canvas.style.width = `${W}px`;
       canvas.style.height = `${H}px`;
     };
 
-    const sprites = CLOUD_LAYERS.map((L, li) => [0, 1, 2, 3].map((k) => makeCloudSprite(900 + li * 31 + k * 7, L.tint)));
+    // Bake each layer's blur into its sprites once, so drawing a frame is just a few image copies.
+    const bake = (src: HTMLCanvasElement, blur: number) => {
+      if (!blur) return src;
+      const pad = blur * 3;
+      const c = document.createElement("canvas");
+      c.width = src.width + pad * 2;
+      c.height = src.height + pad * 2;
+      const g = c.getContext("2d")!;
+      g.filter = `blur(${blur * 1.6}px)`;
+      g.drawImage(src, pad, pad);
+      const out = document.createElement("canvas");
+      out.width = src.width;
+      out.height = src.height;
+      out.getContext("2d")!.drawImage(c, pad, pad, src.width, src.height, 0, 0, src.width, src.height);
+      return out;
+    };
+    const sprites = CLOUD_LAYERS.map((L, li) => [0, 1, 2, 3].map((k) => bake(makeCloudSprite(900 + li * 31 + k * 7, L.tint), L.blur)));
     const rndC = seeded(31337);
     const clouds = CLOUD_LAYERS.map((L, li) =>
       Array.from({ length: L.count }, (_, k) => ({
@@ -479,21 +495,11 @@ function HeroAurora() {
       ctx.clearRect(0, 0, W, H);
       const small = W < 640;
 
-      // dawn light rising from behind the clouds
-      const sun = ctx.createRadialGradient(W / 2, H * 0.98, 0, W / 2, H * 0.98, Math.max(W * 0.6, 420));
-      sun.addColorStop(0, "rgba(255,255,255,0.95)");
-      sun.addColorStop(0.18, "rgba(170,225,255,0.6)");
-      sun.addColorStop(0.45, "rgba(92,150,255,0.22)");
-      sun.addColorStop(1, "rgba(92,120,255,0)");
-      ctx.fillStyle = sun;
-      ctx.fillRect(0, 0, W, H);
-
       CLOUD_LAYERS.forEach((L, li) => {
         const cw = (small ? W * 0.75 : W * 0.32) * L.scale;
         const ch = cw / 2;
         const span = W + cw * 1.2;
         ctx.globalAlpha = L.alpha;
-        ctx.filter = L.blur ? `blur(${L.blur}px)` : "none";
         for (const cl of clouds[li]) {
           const w = cw * cl.s;
           const h = ch * cl.s;
@@ -585,6 +591,10 @@ function HeroAurora() {
         ref={cursorRef}
         className="absolute left-0 top-0 h-[520px] w-[520px] rounded-full opacity-0 transition-opacity duration-700"
         style={{ background: "radial-gradient(closest-side, rgba(92,225,255,0.28), rgba(31,111,235,0.12) 45%, rgba(31,111,235,0) 75%)" }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: "radial-gradient(60% 55% at 50% 98%, rgba(255,255,255,0.95) 0%, rgba(170,225,255,0.6) 18%, rgba(92,150,255,0.22) 45%, rgba(92,120,255,0) 100%)" }}
       />
       <canvas ref={canvasRef} className="absolute inset-0" />
       {SPARKS.map((sp, i) => (
@@ -711,34 +721,70 @@ function Spotlight() {
   }, [go]);
 
   // Apple-style scroll: the stage grows to full width while the headline drifts back.
+  // Values ease toward the scroll position (no jumps between wheel steps) and only
+  // transform/opacity change, so the browser never has to repaint the large stage.
   useEffect(() => {
     if (reduced()) return;
+    const stage = stageRef.current;
+    const anchor = stage?.parentElement;
+    if (!stage || !anchor) return;
     let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const vh = window.innerHeight;
-        const stage = stageRef.current;
-        if (stage) {
-          const r = stage.getBoundingClientRect();
-          const p = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.9)));
-          stage.style.transform = `scale(${0.9 + 0.1 * p})`;
-          stage.style.borderRadius = `${36 - 12 * p}px`;
-        }
-        if (copyRef.current) {
-          const y = Math.min(window.scrollY, vh);
-          copyRef.current.style.transform = `translate3d(0, ${y * 0.18}px, 0)`;
-          copyRef.current.style.opacity = String(1 - Math.min(0.7, y / (vh * 1.1)));
-        }
-      });
+    let running = false;
+    let last = 0;
+    let anchorTop = 0;
+    let vh = window.innerHeight;
+    const cur = { p: 0, y: 0 };
+    const measure = () => {
+      vh = window.innerHeight;
+      anchorTop = anchor.getBoundingClientRect().top + window.scrollY;
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    const target = () => {
+      const sy = window.scrollY;
+      return { p: Math.min(1, Math.max(0, (vh - (anchorTop - sy)) / (vh * 0.9))), y: Math.min(sy, vh) };
+    };
+    const apply = () => {
+      stage.style.transform = `translate3d(0,0,0) scale(${0.9 + 0.1 * cur.p})`;
+      if (copyRef.current) {
+        copyRef.current.style.transform = `translate3d(0, ${cur.y * 0.18}px, 0)`;
+        copyRef.current.style.opacity = String(1 - Math.min(0.7, cur.y / (vh * 1.1)));
+      }
+    };
+    const tick = (now: number) => {
+      const dt = last ? Math.min(64, now - last) : 16;
+      last = now;
+      const t = target();
+      const k = 1 - Math.exp(-dt / 110);
+      cur.p += (t.p - cur.p) * k;
+      cur.y += (t.y - cur.y) * k;
+      apply();
+      if (Math.abs(t.p - cur.p) < 0.0004 && Math.abs(t.y - cur.y) < 0.3) {
+        cur.p = t.p;
+        cur.y = t.y;
+        apply();
+        running = false;
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    const kick = () => {
+      if (running) return;
+      running = true;
+      last = 0;
+      raf = requestAnimationFrame(tick);
+    };
+    const onResize = () => {
+      measure();
+      kick();
+    };
+    measure();
+    Object.assign(cur, target());
+    apply();
+    window.addEventListener("scroll", kick, { passive: true });
+    window.addEventListener("resize", onResize);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("scroll", kick);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
@@ -782,7 +828,7 @@ function Spotlight() {
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
           className="relative mx-auto max-w-[1400px] origin-top overflow-hidden bg-[#061634] text-[#F3F6FC] will-change-transform"
-          style={{ transform: "scale(0.9)", borderRadius: 36, background: "linear-gradient(155deg, #0B3A8C 0%, #0A2463 42%, #061634 100%)" }}
+          style={{ transform: "scale(0.9)", borderRadius: 32, background: "linear-gradient(155deg, #0B3A8C 0%, #0A2463 42%, #061634 100%)", backfaceVisibility: "hidden" }}
         >
           <div
             aria-hidden
