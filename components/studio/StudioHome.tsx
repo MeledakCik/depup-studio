@@ -2,7 +2,25 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Cloud,
+  Code,
+  Cpu,
+  Database,
+  FileText,
+  Layers,
+  Music,
+  Pause,
+  Play,
+  Plus,
+  ShieldCheck,
+  Sparkles,
+  Terminal,
+  type LucideIcon,
+} from "lucide-react";
 import { ACCENT_HEX, CATEGORIES, NOTES, PRINCIPLES, SYSTEMS, UPDATES, type Category } from "@/components/obsidian/data";
 import "./studio.css";
 
@@ -444,10 +462,264 @@ function Spotlight() {
   );
 }
 
+/* ---------- constellation (scroll-driven motion graphic) ---------- */
+
+const ECO_PREVIEW = 6;
+
+const SYSTEM_ICON: Record<string, LucideIcon> = {
+  cloud: Cloud,
+  office: FileText,
+  sentinel: ShieldCheck,
+  motionku: Sparkles,
+  dvibes: Music,
+  kasyaf: Database,
+  code: Code,
+  cikai: Cpu,
+  os: Terminal,
+};
+const CATEGORY_ICON: Record<Category, LucideIcon> = {
+  cloud: Cloud,
+  productivity: FileText,
+  security: ShieldCheck,
+  creative: Sparkles,
+  developer: Code,
+};
+/** New systems get an icon from their category, so the constellation keeps working as the list grows. */
+const iconFor = (id: string, category: Category) => SYSTEM_ICON[id] ?? CATEGORY_ICON[category] ?? Layers;
+const shortName = (name: string) => name.split(" & ")[0].replace(/ Dev Edition$/, "");
+
+const tileColor = (hex: string) => (hex.toLowerCase() === "#e2e2e6" ? "#8AB4FF" : hex);
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const range = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
+
+function Constellation() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const tileRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const labelRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const lineRefs = useRef<(SVGLineElement | null)[]>([]);
+  const coreRef = useRef<HTMLDivElement>(null);
+  const copyA = useRef<HTMLDivElement>(null);
+  const copyB = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const n = SYSTEMS.length;
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const stage = stageRef.current;
+    if (!section || !stage) return;
+    const still = reduced();
+    let raf = 0;
+    let layout: { sx: number; sy: number; ss: number; ex: number; ey: number }[] = [];
+    let half = { w: 0, h: 0 };
+
+    const computeLayout = () => {
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
+      half = { w: w / 2, h: h / 2 };
+      const small = w < 640;
+      const tile = small ? 60 : 76;
+      const gap = small ? 26 : 40;
+      const cols = Math.min(n, small ? 3 : Math.min(6, Math.ceil(Math.sqrt(n * 1.8))));
+      const rows = Math.ceil(n / cols);
+      const cell = tile + gap;
+      const rx = Math.min(w * 0.42, 520);
+      const ry = Math.min(h * 0.3, 260);
+      const golden = Math.PI * (3 - Math.sqrt(5));
+      layout = SYSTEMS.map((_, i) => {
+        const a = i * golden + 0.6;
+        const r = 0.55 + 0.45 * (((i * 7) % n) / Math.max(1, n - 1));
+        const row = Math.floor(i / cols);
+        const inRow = row === rows - 1 ? n - row * cols : cols;
+        const col = i % cols;
+        return {
+          sx: Math.cos(a) * rx * r,
+          sy: Math.sin(a) * ry * r,
+          ss: 0.7 + 0.45 * r,
+          ex: (col - (inRow - 1) / 2) * cell,
+          ey: (row - (rows - 1) / 2) * (cell + (small ? 14 : 18)) + (small ? 40 : 56),
+        };
+      });
+    };
+
+    const frame = () => {
+      const rect = section.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const total = section.offsetHeight - vh;
+      const p = still ? 1 : clamp01(-rect.top / Math.max(1, total));
+      const appear = range(p, 0, 0.12);
+      const gather = easeInOut(range(p, 0.18, 0.72));
+      const settle = range(p, 0.7, 0.86);
+      const spin = (1 - gather) * p * 1.4;
+
+      layout.forEach((L, i) => {
+        const cos = Math.cos(spin);
+        const sin = Math.sin(spin);
+        const ox = L.sx * cos - L.sy * sin * 0.6;
+        const oy = L.sx * sin * 0.6 + L.sy * cos;
+        const x = ox + (L.ex - ox) * gather;
+        const y = oy + (L.ey - oy) * gather;
+        const sc = (L.ss + (1 - L.ss) * gather) * (0.6 + 0.4 * appear);
+        const el = tileRefs.current[i];
+        if (el) {
+          el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${sc})`;
+          el.style.opacity = String(Math.min(1, appear * 1.2) * (0.55 + 0.45 * Math.max(gather, L.ss - 0.5)));
+        }
+        const lb = labelRefs.current[i];
+        if (lb) lb.style.opacity = String(settle);
+        const ln = lineRefs.current[i];
+        if (ln) {
+          ln.setAttribute("x2", String(half.w + x));
+          ln.setAttribute("y2", String(half.h + y));
+          ln.style.opacity = String(appear * (1 - gather) * 0.5);
+        }
+      });
+      if (coreRef.current) {
+        const c = 1 - easeInOut(range(p, 0.3, 0.62));
+        coreRef.current.style.opacity = String(c * Math.max(appear, 0.4));
+        coreRef.current.style.transform = `translate(-50%, -50%) scale(${0.7 + 0.3 * c + 0.08 * appear})`;
+      }
+      const t = range(p, 0.38, 0.5);
+      if (copyA.current) {
+        copyA.current.style.opacity = String(1 - t);
+        copyA.current.style.transform = `translate3d(0, ${-16 * t}px, 0)`;
+      }
+      if (copyB.current) {
+        copyB.current.style.opacity = String(t);
+        copyB.current.style.transform = `translate3d(0, ${16 * (1 - t)}px, 0)`;
+      }
+      if (barRef.current) barRef.current.style.transform = `scaleX(${p})`;
+    };
+
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(frame);
+    };
+    const onResize = () => {
+      computeLayout();
+      onScroll();
+    };
+    computeLayout();
+    frame();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [n]);
+
+  return (
+    <section ref={sectionRef} aria-label="The Depup ecosystem" className="relative h-[230vh] bg-[#061634] text-[#F3F6FC] md:h-[260vh]">
+      <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(55% 50% at 50% 55%, rgba(31,111,235,0.35), transparent 70%)" }} />
+        <div aria-hidden className="st-grid pointer-events-none absolute inset-0 opacity-[0.07]" />
+
+        <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full">
+          {SYSTEMS.map((s, i) => (
+            <line
+              key={s.id}
+              ref={(el) => {
+                lineRefs.current[i] = el;
+              }}
+              x1="50%"
+              y1="50%"
+              x2="50%"
+              y2="50%"
+              stroke="#8AB4FF"
+              strokeWidth="1"
+              strokeDasharray="2 6"
+              style={{ opacity: 0 }}
+            />
+          ))}
+        </svg>
+
+        <div
+          ref={coreRef}
+          aria-hidden
+          className="absolute left-1/2 top-1/2 grid h-24 w-24 place-items-center rounded-[28px] bg-[#0057C3] font-display text-[40px] font-semibold text-white shadow-[0_0_80px_rgba(31,111,235,0.6)] md:h-28 md:w-28"
+          style={{ transform: "translate(-50%, -50%)" }}
+        >
+          <span className="st-pulse absolute inset-0 rounded-[28px] border border-[#8AB4FF]/50" />
+          D
+        </div>
+
+        {SYSTEMS.map((s, i) => {
+          const color = tileColor(ACCENT_HEX[s.accent]);
+          const Icon = iconFor(s.id, s.category);
+          return (
+            <a
+              key={s.id}
+              href={safeHref(s.href) === "#ecosystem" ? "#ecosystem" : safeHref(s.href)}
+              ref={(el) => {
+                tileRefs.current[i] = el;
+              }}
+              aria-label={s.name}
+              className="group absolute left-1/2 top-1/2 flex flex-col items-center will-change-transform"
+              style={{ opacity: 0 }}
+            >
+              <span className="st-float block" style={{ animationDelay: `${(i % 5) * -1.3}s` }}>
+                <span
+                  className="grid h-[60px] w-[60px] place-items-center rounded-[18px] border border-white/15 bg-white/[0.06] font-display text-[20px] font-semibold backdrop-blur-md transition-all duration-500 group-hover:-translate-y-1 group-hover:border-white/40 group-hover:bg-white/[0.12] sm:h-[76px] sm:w-[76px] sm:rounded-[22px] sm:text-[24px]"
+                  style={{ color, boxShadow: `0 10px 40px -12px ${color}66` }}
+                >
+                  <Icon className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={1.75} aria-hidden />
+                </span>
+              </span>
+              <span
+                ref={(el) => {
+                  labelRefs.current[i] = el;
+                }}
+                className="mt-3 w-[80px] truncate text-center text-[11px] text-[#C9D5EC] sm:w-[108px] sm:text-[13px]"
+                style={{ opacity: 0 }}
+              >
+                {shortName(s.name)}
+              </span>
+            </a>
+          );
+        })}
+
+        <div className={`${wrap} pointer-events-none absolute inset-x-0 top-[13vh] text-center md:top-[11vh]`}>
+          <div ref={copyA} className="absolute inset-x-0">
+            <p className={`${eyebrow} text-[#8AB4FF]`}>The Depup ecosystem</p>
+            <h2 className="mx-auto mt-4 max-w-[760px] font-display text-[clamp(30px,4.4vw,56px)] font-semibold leading-[1.05] tracking-[-0.035em]">
+              Every project starts as its own idea.
+            </h2>
+          </div>
+          <div ref={copyB} className="absolute inset-x-0" style={{ opacity: 0 }}>
+            <p className={`${eyebrow} text-[#8AB4FF]`}>{n} systems · and counting</p>
+            <h2 className="mx-auto mt-4 max-w-[760px] font-display text-[clamp(30px,4.4vw,56px)] font-semibold leading-[1.05] tracking-[-0.035em]">
+              Then they move as one studio.
+            </h2>
+          </div>
+        </div>
+
+        <div className={`${wrap} absolute inset-x-0 bottom-8 flex items-center gap-4`}>
+          <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#8FA3C7]">Scroll</span>
+          <div className="h-px flex-1 overflow-hidden bg-white/15">
+            <div ref={barRef} className="h-full origin-left bg-[#8AB4FF]" style={{ transform: "scaleX(0)" }} />
+          </div>
+          <a href="#ecosystem" className="pointer-events-auto font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C9D5EC] hover:text-white">
+            Skip to systems
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------- ecosystem ---------- */
 
 function Ecosystem() {
-  const [filter, setFilter] = useState<"all" | Category>("all");
+  const [filter, setFilterRaw] = useState<"all" | Category>("all");
+  const [expanded, setExpanded] = useState(false);
+  const setFilter = (f: "all" | Category) => {
+    setFilterRaw(f);
+    setExpanded(false);
+  };
   const rowRef = useRef<HTMLDivElement>(null);
   const [ind, setInd] = useState({ x: 0, w: 0 });
 
@@ -463,6 +735,8 @@ function Ecosystem() {
   }, [measure]);
 
   const list = filter === "all" ? SYSTEMS : SYSTEMS.filter((s) => s.category === filter);
+  const collapsible = list.length > ECO_PREVIEW;
+  const shown = collapsible && !expanded ? list.slice(0, ECO_PREVIEW) : list;
 
   return (
     <section id="ecosystem" className="scroll-mt-14 py-24 md:py-36">
@@ -509,17 +783,24 @@ function Ecosystem() {
         </div>
 
         <div key={filter} className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((s, i) => (
+          {shown.map((s, i) => (
             <article
               key={s.id}
               className="st-swap st-lift group flex flex-col rounded-[24px] border border-black/[0.07] bg-white p-7"
-              style={EASE_DELAY(i * 55)}
+              style={EASE_DELAY((i >= ECO_PREVIEW && expanded ? i - ECO_PREVIEW : i) * 55)}
             >
               <div className="flex items-center justify-between">
                 <span className="font-obs-mono text-[12px] text-[#5E6A80]">DEPUP / {s.num}</span>
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: ACCENT_HEX[s.accent] === "#e2e2e6" ? "#0057C3" : ACCENT_HEX[s.accent] }} />
+                {(() => {
+                  const Icon = iconFor(s.id, s.category);
+                  return (
+                    <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#0057C3]/[0.07] text-[#0057C3] transition-transform duration-500 group-hover:scale-110">
+                      <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    </span>
+                  );
+                })()}
               </div>
-              <p className="mt-10 text-[13px] text-[#4F5B70]">{s.badge}</p>
+              <p className="mt-8 text-[13px] text-[#4F5B70]">{s.badge}</p>
               <h3 className="mt-1.5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em]">{s.name}</h3>
               <p className="mt-3 flex-1 text-[15px] leading-[1.6] text-[#2E3A50]">{s.description}</p>
               <div className="mt-6 flex flex-wrap gap-1.5">
@@ -536,6 +817,22 @@ function Ecosystem() {
             </article>
           ))}
         </div>
+        {collapsible && (
+          <div className="mt-12 flex justify-center">
+            <button
+              type="button"
+              aria-expanded={expanded}
+              onClick={() => {
+                if (expanded) document.getElementById("ecosystem")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth" });
+                setExpanded((v) => !v);
+              }}
+              className="group inline-flex min-h-11 items-center gap-2 rounded-full border border-[#0057C3]/25 px-6 py-3 text-[15px] font-medium text-[#0057C3] transition-all duration-300 hover:border-[#0057C3] hover:bg-[#0057C3] hover:text-white"
+            >
+              {expanded ? "Show fewer" : `Show all ${list.length} systems`}
+              <Plus className={`h-4 w-4 transition-transform duration-500 ${expanded ? "rotate-45" : "group-hover:rotate-90"}`} />
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -919,6 +1216,7 @@ export function StudioHome() {
       <StudioNav />
       <main>
         <Spotlight />
+        <Constellation />
         <Ecosystem />
         <Engineering />
         <Updates />
