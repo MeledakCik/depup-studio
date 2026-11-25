@@ -253,6 +253,187 @@ function StudioNav() {
   );
 }
 
+/* ---------- hero background: Gemini-style flowing light ---------- */
+
+const SPARKS = [
+  { x: 14, y: 22, s: 18, d: 0 },
+  { x: 86, y: 18, s: 14, d: -1.6 },
+  { x: 78, y: 62, s: 22, d: -3.1 },
+  { x: 22, y: 70, s: 12, d: -2.2 },
+  { x: 50, y: 10, s: 10, d: -4 },
+  { x: 92, y: 44, s: 10, d: -0.8 },
+];
+const STREAM_COLORS = ["#1F6FEB", "#5CE1FF", "#7C4DFF", "#0057C3", "#8AB4FF", "#4C8DFF", "#A78BFA"];
+
+function GeminiSpark({ size, className, style }: { size: number; className?: string; style?: CSSProperties }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden className={className} style={style}>
+      <defs>
+        <linearGradient id="st-spark" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#5CE1FF" />
+          <stop offset="0.5" stopColor="#1F6FEB" />
+          <stop offset="1" stopColor="#7C4DFF" />
+        </linearGradient>
+      </defs>
+      <path d="M12 0C12 6.6 17.4 12 24 12C17.4 12 12 17.4 12 24C12 17.4 6.6 12 0 12C6.6 12 12 6.6 12 0Z" fill="url(#st-spark)" />
+    </svg>
+  );
+}
+
+function HeroAurora() {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const blobsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const host = wrapRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!host || !canvas || !ctx) return;
+    const still = reduced();
+    let W = 0;
+    let H = 0;
+    let DPR = 1;
+    let raf = 0;
+    let running = false;
+    let last = 0;
+    let time = 0;
+    const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+
+    // Each stream is a light trail riding a slow wave: bright leading edge, fading tail.
+    const rnd = seeded(4242);
+    const streams = Array.from({ length: 9 }, (_, i) => ({
+      y: 0.18 + rnd() * 0.7,
+      amp: 0.04 + rnd() * 0.08,
+      freq: 1.2 + rnd() * 2.2,
+      phase: rnd() * Math.PI * 2,
+      speed: 0.035 + rnd() * 0.05,
+      len: 0.22 + rnd() * 0.3,
+      width: 1.2 + rnd() * 2.2,
+      head: rnd(),
+      color: STREAM_COLORS[i % STREAM_COLORS.length],
+      dir: i % 3 === 0 ? -1 : 1,
+    }));
+
+    const size = () => {
+      W = host.clientWidth;
+      H = host.clientHeight;
+      DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.round(W * DPR);
+      canvas.height = Math.round(H * DPR);
+      canvas.style.width = `${W}px`;
+      canvas.style.height = `${H}px`;
+    };
+
+    const yAt = (st: (typeof streams)[number], u: number) =>
+      (st.y + Math.sin(u * Math.PI * st.freq + st.phase + time * 0.0004) * st.amp) * H + mouse.y * 18 * (st.width / 3);
+
+    const draw = () => {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.lineCap = "round";
+      for (const st of streams) {
+        const headU = st.dir > 0 ? st.head : 1 - st.head;
+        const tailU = headU - st.len * st.dir;
+        const steps = 48;
+        const g = ctx.createLinearGradient(tailU * W, 0, headU * W, 0);
+        g.addColorStop(0, `${st.color}00`);
+        g.addColorStop(0.75, `${st.color}55`);
+        g.addColorStop(1, `${st.color}EE`);
+        ctx.strokeStyle = g;
+        ctx.lineWidth = st.width;
+        ctx.shadowColor = st.color;
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        for (let k = 0; k <= steps; k++) {
+          const u = tailU + ((headU - tailU) * k) / steps;
+          const x = u * W + mouse.x * 14;
+          const y = yAt(st, u);
+          if (k === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        // glowing head
+        const hx = headU * W + mouse.x * 14;
+        const hy = yAt(st, headU);
+        const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, st.width * 6);
+        hg.addColorStop(0, "rgba(255,255,255,0.95)");
+        hg.addColorStop(0.3, `${st.color}AA`);
+        hg.addColorStop(1, `${st.color}00`);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = hg;
+        ctx.fillRect(hx - st.width * 6, hy - st.width * 6, st.width * 12, st.width * 12);
+      }
+    };
+
+    const tick = (now: number) => {
+      const dt = last ? Math.min(64, now - last) : 16;
+      last = now;
+      time += dt;
+      mouse.x += (mouse.tx - mouse.x) * (1 - Math.exp(-dt / 400));
+      mouse.y += (mouse.ty - mouse.y) * (1 - Math.exp(-dt / 400));
+      for (const st of streams) {
+        st.head += (st.speed * dt) / 1000;
+        if (st.head > 1 + st.len) st.head = -0.05;
+      }
+      if (blobsRef.current) blobsRef.current.style.transform = `translate3d(${mouse.x * -24}px, ${mouse.y * -18}px, 0)`;
+      draw();
+      if (running) raf = requestAnimationFrame(tick);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      mouse.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouse.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+
+    size();
+    draw();
+    const io = new IntersectionObserver(([e]) => {
+      if (still) return;
+      if (e.isIntersecting && !running) {
+        running = true;
+        last = 0;
+        raf = requestAnimationFrame(tick);
+      } else if (!e.isIntersecting && running) {
+        running = false;
+        cancelAnimationFrame(raf);
+      }
+    });
+    io.observe(host);
+    window.addEventListener("resize", size);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      running = false;
+      cancelAnimationFrame(raf);
+      io.disconnect();
+      window.removeEventListener("resize", size);
+      window.removeEventListener("pointermove", onMove);
+    };
+  }, []);
+
+  return (
+    <div ref={wrapRef} aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[100svh] min-h-[640px] overflow-hidden">
+      <div ref={blobsRef} className="absolute inset-0 will-change-transform">
+        <span className="st-blob st-blob-a" />
+        <span className="st-blob st-blob-b" />
+        <span className="st-blob st-blob-c" />
+        <span className="st-blob st-blob-d" />
+      </div>
+      <canvas ref={canvasRef} className="absolute inset-0 opacity-70" />
+      {SPARKS.map((sp, i) => (
+        <GeminiSpark
+          key={i}
+          size={sp.s}
+          className="st-spark absolute"
+          style={{ left: `${sp.x}%`, top: `${sp.y}%`, animationDelay: `${sp.d}s` }}
+        />
+      ))}
+      <div className="absolute inset-0" style={{ background: "radial-gradient(55% 45% at 50% 42%, rgba(246,248,252,0.82), rgba(246,248,252,0) 75%)" }} />
+      <div className="absolute inset-x-0 bottom-0 h-40" style={{ background: "linear-gradient(to bottom, rgba(246,248,252,0), #F6F8FC)" }} />
+    </div>
+  );
+}
+
 /* ---------- spotlight (hero + product stories) ---------- */
 
 const byId = (id: string) => SYSTEMS.find((s) => s.id === id)!;
@@ -346,8 +527,9 @@ function Spotlight() {
   const s = STORIES[idx];
 
   return (
-    <section id="spotlight" className={`pb-20 pt-32 md:pb-28 md:pt-40 ${ready ? "st-ready" : ""}`}>
-      <div ref={copyRef} className={`${wrap} text-center will-change-transform`}>
+    <section id="spotlight" className={`relative pb-20 pt-32 md:pb-28 md:pt-40 ${ready ? "st-ready" : ""}`}>
+      <HeroAurora />
+      <div ref={copyRef} className={`${wrap} relative z-10 text-center will-change-transform`}>
         <p className={`${eyebrow} text-[#0057C3]`}>
           <Words text="Independent systems studio · Jakarta" step={40} />
         </p>
@@ -376,7 +558,7 @@ function Spotlight() {
         </div>
       </div>
 
-      <div className="mt-16 px-3 md:mt-24 md:px-6">
+      <div className="relative z-10 mt-16 px-3 md:mt-24 md:px-6">
         <div
           ref={stageRef}
           onMouseEnter={() => setHover(true)}

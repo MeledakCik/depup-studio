@@ -102,6 +102,60 @@ html:has(.st-root) {
   box-shadow: inset 0 0 18px rgba(92, 225, 255, 0.45), inset -6px -8px 18px rgba(2, 6, 15, 0.55);
 }
 
+/* Hero aurora blobs and Gemini sparks. */
+.st-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.st-blob-a {
+  width: 46vw; height: 46vw; left: -8vw; top: 4%;
+  background: radial-gradient(circle at 40% 40%, #5ce1ff, rgba(92, 225, 255, 0) 70%);
+  animation: st-drift-a 22s ease-in-out infinite alternate;
+}
+.st-blob-b {
+  width: 52vw; height: 52vw; right: -12vw; top: -10%;
+  background: radial-gradient(circle at 50% 50%, #1f6feb, rgba(31, 111, 235, 0) 70%);
+  animation: st-drift-b 26s ease-in-out infinite alternate;
+}
+.st-blob-c {
+  width: 40vw; height: 40vw; right: 8vw; top: 45%;
+  background: radial-gradient(circle at 50% 50%, #7c4dff, rgba(124, 77, 255, 0) 70%);
+  opacity: 0.4;
+  animation: st-drift-c 30s ease-in-out infinite alternate;
+}
+.st-blob-d {
+  width: 36vw; height: 36vw; left: 18vw; top: 55%;
+  background: radial-gradient(circle at 50% 50%, #8ab4ff, rgba(138, 180, 255, 0) 70%);
+  animation: st-drift-a 34s ease-in-out infinite alternate-reverse;
+}
+@keyframes st-drift-a {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(8vw, 6vh, 0) scale(1.15); }
+  100% { transform: translate3d(14vw, -4vh, 0) scale(0.95); }
+}
+@keyframes st-drift-b {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-10vw, 8vh, 0) scale(0.9); }
+  100% { transform: translate3d(-4vw, 14vh, 0) scale(1.1); }
+}
+@keyframes st-drift-c {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  100% { transform: translate3d(-16vw, -10vh, 0) rotate(40deg) scale(1.2); }
+}
+.st-spark {
+  opacity: 0;
+  animation: st-spark 6s var(--st-ease) infinite;
+  filter: drop-shadow(0 0 8px rgba(31, 111, 235, 0.5));
+}
+@keyframes st-spark {
+  0%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+  30% { opacity: 0.9; transform: scale(1) rotate(45deg); }
+  60% { opacity: 0.5; transform: scale(0.8) rotate(90deg); }
+}
+
 /* Story progress bar. */
 .st-progress {
   transform-origin: left center;
@@ -189,7 +243,9 @@ html:has(.st-root) {
   .st-swap,
   .st-progress,
   .st-float,
-  .st-pulse {
+  .st-pulse,
+  .st-blob,
+  .st-spark {
     animation: none !important;
   }
   .st-lift:hover {
