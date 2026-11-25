@@ -24,9 +24,11 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://depupstudio.com"),
   title: "Depup Studio — Frontier Digital Systems & Cloud Ecosystem",
   description:
-    "Official flagship corporate & product ecosystem portal for depup.studio — parent studio of depup.cloud, depup Office, Sentinel-ID, and MotionKu.",
+    "Official home of Depup Studio (depupstudio.com) — the studio behind depup Office, Sentinel-ID, depup.cloud, and MotionKu.",
+  openGraph: { siteName: "Depup Studio", type: "website", url: "https://depupstudio.com" },
 };
 
 export default function RootLayout({

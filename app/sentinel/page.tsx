@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import {
-  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   Check,
@@ -12,6 +11,9 @@ import {
   Timer,
 } from "lucide-react";
 import { SentinelPreview } from "@/components/SentinelPreview";
+import { PlatformDownloads } from "@/components/PlatformDownloads";
+import { ProductFooter, ProductHeader } from "@/components/ProductChrome";
+import { PRODUCTS } from "@/lib/products";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { ScrollScene } from "@/components/ScrollScene";
@@ -23,6 +25,7 @@ export const metadata: Metadata = {
   title: "Sentinel-ID — Audit Keamanan Website Pasif",
   description:
     "Kenali Sentinel-ID, auditor keamanan website pasif untuk pemilik domain. GET-only, same-origin, tanpa payload atau exploit.",
+  alternates: { canonical: "/sentinel" },
 };
 
 const principles = [
@@ -52,25 +55,14 @@ export default function SentinelPage() {
   return (
     <main className="min-h-screen bg-surface text-text-primary">
       <ScrollProgress />
-      <header className="border-b border-border-subtle bg-surface-canvas/90">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-10 lg:px-16">
-          <a href="/" className="flex items-center gap-2.5" aria-label="Depup Studio">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-text-primary font-editorial-sm text-sm text-white">D</span>
-            <span className="font-editorial-sm text-base">Depup Studio</span>
+      <ProductHeader
+        cta={{ label: "Buka Sentinel-ID", href: sentinelUrl }}
+        links={
+          <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="hidden items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary md:inline-flex">
+            <Code2 className="h-4 w-4" /> Source
           </a>
-          <nav className="flex items-center gap-3 sm:gap-6" aria-label="Navigasi Sentinel-ID">
-            <a href="/" className="hidden items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary sm:inline-flex">
-              <ArrowLeft className="h-4 w-4" /> Studio
-            </a>
-            <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="hidden items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary sm:inline-flex">
-              <Code2 className="h-4 w-4" /> Source
-            </a>
-            <a href={sentinelUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-text-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-container">
-              Buka Sentinel-ID <ArrowUpRight className="h-4 w-4" />
-            </a>
-          </nav>
-        </div>
-      </header>
+        }
+      />
 
       <section className="overflow-hidden bg-surface-canvas">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 md:px-10 md:py-24 lg:grid-cols-[0.9fr_1.1fr] lg:px-16 lg:py-28">
@@ -95,7 +87,8 @@ export default function SentinelPage() {
             </div>
             <p className="mt-4 flex flex-wrap items-center gap-x-2 text-xs text-text-tertiary">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              Hanya untuk domain milik sendiri · GET-only · tanpa bypass WAF
+              Hanya untuk domain milik sendiri · GET-only · tanpa bypass WAF ·{" "}
+              <a href="/sentinel/privacy-policy" className="font-medium text-primary hover:underline">Kebijakan Privasi</a>
             </p>
           </ScrollReveal>
 
@@ -121,7 +114,9 @@ export default function SentinelPage() {
         </div>
       </section>
 
-      <section id="features" className="border-y border-border-subtle bg-surface-canvas py-20 md:py-24">
+      <PlatformDownloads product={PRODUCTS.sentinel} />
+
+      <section id="features" className="py-20 md:py-24">
         <div className="mx-auto max-w-7xl px-5 md:px-10 lg:px-16">
           <ScrollReveal variant="left" className="mb-10 max-w-2xl">
             <span className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">Prinsip kerja</span>
@@ -180,12 +175,7 @@ export default function SentinelPage() {
         </ScrollReveal>
       </section>
 
-      <footer className="border-t border-border-subtle bg-surface-canvas">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-6 text-sm text-text-tertiary sm:flex-row sm:items-center sm:justify-between md:px-10 lg:px-16">
-          <span>© {new Date().getFullYear()} Depup Studio</span>
-          <a href="/" className="inline-flex items-center gap-1.5 hover:text-text-primary"><ArrowLeft className="h-4 w-4" /> Kembali ke Depup Studio</a>
-        </div>
-      </footer>
+      <ProductFooter />
     </main>
   );
 }

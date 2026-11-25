@@ -1157,3 +1157,46 @@ html:has(.obs-root) ::-webkit-scrollbar-thumb {
   }
   .obs-progress { animation: none !important; }
 }
+
+/* ---------- Kebijakan privasi (components/PolicyPage) ---------- */
+.policy-section { scroll-margin-top: 88px; }
+.policy-section + .policy-section { margin-top: 36px; }
+.policy-section h2 {
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: 10px;
+  font-size: 19px;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+}
+.policy-section .policy-num { color: var(--color-text-tertiary); font-weight: 500; }
+.policy-section p,
+.policy-section li { margin-top: 10px; color: #374151; font-size: 15px; line-height: 1.75; }
+.policy-section ul { margin: 10px 0 14px; padding-left: 22px; list-style: disc; }
+.policy-section ul li::marker { color: var(--color-primary); }
+.policy-section a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; }
+.policy-section strong { color: var(--color-text-primary); }
+.policy-section code { border-radius: 6px; background: var(--color-surface-subtle); padding: 1px 6px; font-size: 13px; }
+.policy-section table { margin-top: 12px; width: 100%; border-collapse: collapse; font-size: 14px; }
+.policy-section th, .policy-section td { border: 1px solid var(--color-border-subtle); padding: 8px 10px; text-align: left; vertical-align: top; color: #374151; }
+.policy-section th { background: var(--color-surface-subtle); font-weight: 600; color: var(--color-text-primary); }
+.policy-table-wrap { overflow-x: auto; }
+@media (max-width: 640px) {
+  .policy-section table, .policy-section tbody, .policy-section tr, .policy-section td { display: block; width: 100%; }
+  .policy-section thead { display: none; }
+  .policy-section tr { margin-top: 12px; border: 1px solid var(--color-border-subtle); border-radius: 14px; overflow: hidden; }
+  .policy-section td { border: 0; border-top: 1px solid var(--color-border-subtle); }
+  .policy-section td:first-child { border-top: 0; background: var(--color-surface-subtle); }
+  .policy-section td[data-label]::before {
+    content: attr(data-label); display: block; margin-bottom: 2px;
+    font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--color-text-tertiary);
+  }
+}
+
+@media print {
+  header, footer, aside, .policy-toc-mobile, .studio-scroll-progress { display: none !important; }
+  main { background: #fff !important; }
+  .policy { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+  .policy-section a { color: inherit; }
+}

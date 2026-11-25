@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import {
-  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   FileText,
@@ -11,17 +10,20 @@ import {
   Table2,
 } from "lucide-react";
 import { OfficePreview } from "@/components/OfficePreview";
+import { PlatformDownloads } from "@/components/PlatformDownloads";
+import { ProductFooter, ProductHeader } from "@/components/ProductChrome";
+import { OFFICE_PLAY_URL, PRODUCTS } from "@/lib/products";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { ScrollScene } from "@/components/ScrollScene";
 
-const playStoreUrl =
-  "https://play.google.com/store/apps/details?id=studio.depup.office";
+const playStoreUrl = OFFICE_PLAY_URL;
 
 export const metadata: Metadata = {
   title: "depup Office — Dokumen, Spreadsheet, Presentasi, dan PDF",
   description:
-    "Kenali depup Office, aplikasi produktivitas untuk dokumen, spreadsheet, presentasi, dan PDF. Unduh di Google Play.",
+    "Kenali depup Office, aplikasi produktivitas offline untuk dokumen, spreadsheet, presentasi, PDF, dan scanner. Unduh untuk Android; iOS, macOS, dan Windows segera hadir.",
+  alternates: { canonical: "/office" },
 };
 
 const capabilities = [
@@ -51,29 +53,7 @@ export default function OfficePage() {
   return (
     <main className="min-h-screen bg-surface text-text-primary">
       <ScrollProgress />
-      <header className="border-b border-border-subtle bg-surface-canvas/90">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-10 lg:px-16">
-          <a href="/" className="flex items-center gap-2.5" aria-label="Depup Studio">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-text-primary font-editorial-sm text-sm text-white">
-              D
-            </span>
-            <span className="font-editorial-sm text-base">Depup Studio</span>
-          </a>
-          <nav className="flex items-center gap-3 sm:gap-6" aria-label="Navigasi">
-            <a href="/" className="hidden items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary sm:inline-flex">
-              <ArrowLeft className="h-4 w-4" /> Studio
-            </a>
-            <a
-              href={playStoreUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-text-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-container"
-            >
-              Unduh aplikasi <ArrowUpRight className="h-4 w-4" />
-            </a>
-          </nav>
-        </div>
-      </header>
+      <ProductHeader cta={{ label: "Unduh aplikasi", href: "#unduh" }} />
 
       <section className="overflow-hidden bg-surface-canvas">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 md:px-10 md:py-24 lg:grid-cols-[0.9fr_1.1fr] lg:px-16 lg:py-28">
@@ -107,7 +87,9 @@ export default function OfficePage() {
               </a>
             </div>
             <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
-              <span>Tersedia untuk Android melalui Google Play.</span>
+              <span className="basis-full sm:basis-auto">Tersedia untuk Android · iOS, macOS &amp; Windows segera hadir.</span>
+              <span aria-hidden="true" className="hidden sm:inline">·</span>
+              <a href="#unduh" className="font-medium text-primary hover:underline">Semua platform</a>
               <span aria-hidden="true">·</span>
               <a
                 href="/office/privacy-policy"
@@ -158,7 +140,9 @@ export default function OfficePage() {
         </div>
       </section>
 
-      <section className="border-y border-border-subtle bg-surface-canvas py-20 md:py-24">
+      <PlatformDownloads product={PRODUCTS.office} />
+
+      <section className="py-20 md:py-24">
         <div className="mx-auto max-w-7xl px-5 md:px-10 lg:px-16">
           <ScrollReveal variant="left" className="mb-10 max-w-2xl">
             <span className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">
@@ -197,7 +181,7 @@ export default function OfficePage() {
               Bawa pekerjaan Anda ke satu ruang kerja.
             </h2>
             <p className="mt-3 text-sm leading-6 text-white/70 sm:text-base">
-              Unduh aplikasi depup Office untuk Android melalui Google Play.
+              Unduh depup Office untuk Android melalui Google Play. Versi iOS, macOS, dan Windows segera menyusul.
             </p>
           </div>
           <a
@@ -212,16 +196,7 @@ export default function OfficePage() {
         </ScrollReveal>
       </section>
 
-      <footer className="border-t border-border-subtle bg-surface-canvas">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-6 text-sm text-text-tertiary sm:flex-row sm:items-center sm:justify-between md:px-10 lg:px-16">
-          <span>© {new Date().getFullYear()} Depup Studio</span>
-          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Tautan footer">
-            <a href="/" className="inline-flex items-center gap-1.5 hover:text-text-primary">
-              <ArrowLeft className="h-4 w-4" /> Kembali ke Depup Studio
-            </a>
-          </nav>
-        </div>
-      </footer>
+      <ProductFooter />
     </main>
   );
 }

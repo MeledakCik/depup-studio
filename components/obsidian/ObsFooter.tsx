@@ -8,7 +8,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Cloud & Compute",
     links: [
-      { label: "depup.cloud", href: "https://depup.cloud", external: true },
+      { label: "depup.cloud", href: "/cloud" },
       { label: "Remote MCP", system: "cloud" },
       { label: "Kasyaf Redis Cloud", system: "kasyaf" },
       { label: "CikAi Gateway", system: "cikai" },
@@ -39,6 +39,15 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "Studio Updates", href: "#updates" },
       { label: "GitHub", href: "https://github.com/MeledakCik", external: true },
       { label: "Support the studio", href: "https://saweria.co/depupdonate", external: true },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy Center", href: "/privacy" },
+      { label: "depup Office privacy", href: "/office/privacy-policy" },
+      { label: "Sentinel-ID privacy", href: "/sentinel/privacy-policy" },
+      { label: "depup.cloud privacy", href: "https://depup.cloud/privacy", external: true },
     ],
   },
 ];

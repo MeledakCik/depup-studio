@@ -42,9 +42,8 @@ export const SYSTEMS: SystemItem[] = [
     tags: ["depup.cloud", "depup.web.id", "MCP Connectors", "Supabase Auth"],
     accent: "sky",
     featured: true,
-    href: "https://depup.cloud",
-    external: true,
-    cta: "Open depup.cloud",
+    href: "/cloud",
+    cta: "Explore depup.cloud",
     specs: [
       ["Runtime", "Managed Edge Protocol"],
       ["Auth", "Supabase Auth"],
@@ -63,7 +62,7 @@ export const SYSTEMS: SystemItem[] = [
     description:
       "Document scanner and productivity suite across Android Kotlin and standalone Windows .NET 8.0 with hardware acceleration.",
     tagLabel: "Platforms",
-    tags: ["Google Play", "Windows .NET 8"],
+    tags: ["Android", "iOS · macOS · Windows soon"],
     accent: "titanium",
     href: "/office",
     cta: "Explore depup Office",
