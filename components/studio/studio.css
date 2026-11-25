@@ -93,7 +93,7 @@ html:has(.st-root) {
 @media (hover: hover) {
   .st-lift:hover {
     transform: translate3d(0, -6px, 0);
-    box-shadow: 0 30px 60px -30px rgba(11, 11, 12, 0.28);
+    box-shadow: 0 30px 60px -30px rgba(10, 36, 99, 0.28);
   }
 }
 

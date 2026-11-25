@@ -151,12 +151,12 @@ function StudioNav() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500 ${
-        scrolled || open ? "border-b border-black/[0.06] bg-[#FAFAF8]/80 backdrop-blur-xl backdrop-saturate-150" : "border-b border-transparent"
+        scrolled || open ? "border-b border-black/[0.06] bg-[#F6F8FC]/80 backdrop-blur-xl backdrop-saturate-150" : "border-b border-transparent"
       }`}
     >
       <nav className={`${wrap} flex h-14 items-center justify-between gap-6`}>
         <a href="#spotlight" className="flex items-center gap-2.5 font-display text-[16px] font-semibold tracking-[-0.01em]">
-          <span aria-hidden className="grid h-7 w-7 place-items-center rounded-[8px] bg-[#0B0B0C] text-[13px] text-[#FAFAF8]">
+          <span aria-hidden className="grid h-7 w-7 place-items-center rounded-[8px] bg-[#0057C3] text-[13px] text-[#F6F8FC]">
             D
           </span>
           Depup Studio
@@ -168,12 +168,12 @@ function StudioNav() {
               <SmartLink
                 key={n.href}
                 href={n.href}
-                className={`relative py-1 transition-colors duration-300 ${on ? "text-[#0B0B0C]" : "text-[#5C5C62] hover:text-[#0B0B0C]"}`}
+                className={`relative py-1 transition-colors duration-300 ${on ? "text-[#0A1428]" : "text-[#4F5B70] hover:text-[#0A1428]"}`}
               >
                 {n.label}
                 <span
                   aria-hidden
-                  className={`absolute -bottom-0.5 left-0 h-px w-full origin-left bg-[#0B0B0C] transition-transform duration-500 ${on ? "scale-x-100" : "scale-x-0"}`}
+                  className={`absolute -bottom-0.5 left-0 h-px w-full origin-left bg-[#0057C3] transition-transform duration-500 ${on ? "scale-x-100" : "scale-x-0"}`}
                 />
               </SmartLink>
             );
@@ -184,7 +184,7 @@ function StudioNav() {
             href="https://depup.cloud"
             target="_blank"
             rel="noreferrer"
-            className="group hidden items-center gap-1.5 rounded-full bg-[#0B0B0C] px-4 py-2 text-[13px] font-medium text-[#FAFAF8] transition-transform duration-300 hover:scale-[1.03] sm:inline-flex"
+            className="group hidden items-center gap-1.5 rounded-full bg-[#0057C3] px-4 py-2 text-[13px] font-medium text-[#F6F8FC] transition-transform duration-300 hover:scale-[1.03] sm:inline-flex"
           >
             Launch Cloud
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -197,20 +197,20 @@ function StudioNav() {
             className="grid h-11 w-11 place-items-center rounded-full lg:hidden"
           >
             <span className="relative block h-3 w-5">
-              <span className={`absolute left-0 h-[1.5px] w-5 bg-[#0B0B0C] transition-all duration-500 ${open ? "top-1.5 rotate-45" : "top-0"}`} />
-              <span className={`absolute left-0 h-[1.5px] w-5 bg-[#0B0B0C] transition-all duration-500 ${open ? "top-1.5 -rotate-45" : "top-3"}`} />
+              <span className={`absolute left-0 h-[1.5px] w-5 bg-[#0A1428] transition-all duration-500 ${open ? "top-1.5 rotate-45" : "top-0"}`} />
+              <span className={`absolute left-0 h-[1.5px] w-5 bg-[#0A1428] transition-all duration-500 ${open ? "top-1.5 -rotate-45" : "top-3"}`} />
             </span>
           </button>
         </div>
       </nav>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px">
-        <div ref={barRef} className="h-full origin-left bg-[#0B0B0C]/60" style={{ transform: "scaleX(0)" }} />
+        <div ref={barRef} className="h-full origin-left bg-[#0057C3]" style={{ transform: "scaleX(0)" }} />
       </div>
       <div
         className={`overflow-hidden transition-[max-height,opacity] duration-700 lg:hidden ${open ? "max-h-[100vh] opacity-100" : "max-h-0 opacity-0"}`}
         style={{ transitionTimingFunction: "cubic-bezier(.22,1,.36,1)" }}
       >
-        <div className={`${wrap} flex min-h-[calc(100vh-56px)] flex-col bg-[#FAFAF8] pb-10 pt-4`}>
+        <div className={`${wrap} flex min-h-[calc(100vh-56px)] flex-col bg-[#F6F8FC] pb-10 pt-4`}>
           {NAV.map((n, i) => (
             <SmartLink
               key={n.href}
@@ -224,7 +224,7 @@ function StudioNav() {
               {n.label}
             </SmartLink>
           ))}
-          <a href="https://depup.cloud" className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#0B0B0C] px-5 py-3 text-[15px] font-medium text-[#FAFAF8]">
+          <a href="https://depup.cloud" className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#0057C3] px-5 py-3 text-[15px] font-medium text-[#F6F8FC]">
             Launch Cloud <ArrowUpRight className="h-4 w-4" />
           </a>
         </div>
@@ -251,7 +251,7 @@ const STORIES = [
     ] as [string, string][],
     href: "#ecosystem",
     cta: "Explore our systems",
-    color: "#F2F2EF",
+    color: "#8AB4FF",
   },
   ...(["cloud", "office", "sentinel"] as const).map((id) => {
     const s = byId(id);
@@ -328,21 +328,21 @@ function Spotlight() {
   return (
     <section id="spotlight" className={`pb-20 pt-32 md:pb-28 md:pt-40 ${ready ? "st-ready" : ""}`}>
       <div ref={copyRef} className={`${wrap} text-center will-change-transform`}>
-        <p className={`${eyebrow} text-[#5C5C62]`}>
+        <p className={`${eyebrow} text-[#0057C3]`}>
           <Words text="Independent systems studio · Jakarta" step={40} />
         </p>
         <h1 className="mx-auto mt-6 max-w-[1000px] font-display text-[clamp(52px,9vw,128px)] font-semibold leading-[0.98] tracking-[-0.045em]">
           <Words text="One studio." start={150} />
           <br />
-          <Words text="Made to move." start={400} />
+          <span className="text-[#0057C3]"><Words text="Made to move." start={400} /></span>
         </h1>
-        <p className="st-rise mx-auto mt-8 max-w-[620px] text-[19px] leading-[1.55] text-[#3C3C42] md:text-[21px]" style={EASE_DELAY(750)}>
+        <p className="st-rise mx-auto mt-8 max-w-[620px] text-[19px] leading-[1.55] text-[#2E3A50] md:text-[21px]" style={EASE_DELAY(750)}>
           Software, infrastructure, and useful tools designed around the way people get things done.
         </p>
         <div className="st-rise mt-10 flex flex-wrap justify-center gap-3" style={EASE_DELAY(880)}>
           <a
             href="#ecosystem"
-            className="group inline-flex items-center gap-2 rounded-full bg-[#0B0B0C] px-6 py-3.5 text-[15px] font-medium text-[#FAFAF8] transition-transform duration-300 hover:scale-[1.03]"
+            className="group inline-flex items-center gap-2 rounded-full bg-[#0057C3] px-6 py-3.5 text-[15px] font-medium text-[#F6F8FC] transition-transform duration-300 hover:scale-[1.03]"
           >
             Explore our systems
             <ArrowRight className="st-arrow h-4 w-4" />
@@ -361,8 +361,8 @@ function Spotlight() {
           ref={stageRef}
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
-          className="relative mx-auto max-w-[1400px] origin-top overflow-hidden bg-[#0B0B0C] text-[#F2F2EF] will-change-transform"
-          style={{ transform: "scale(0.9)", borderRadius: 36 }}
+          className="relative mx-auto max-w-[1400px] origin-top overflow-hidden bg-[#061634] text-[#F3F6FC] will-change-transform"
+          style={{ transform: "scale(0.9)", borderRadius: 36, background: "linear-gradient(155deg, #0B3A8C 0%, #0A2463 42%, #061634 100%)" }}
         >
           <div
             aria-hidden
@@ -377,7 +377,7 @@ function Spotlight() {
               <h2 className="st-swap font-display text-[clamp(36px,5vw,64px)] font-semibold leading-[1.02] tracking-[-0.035em]" style={EASE_DELAY(60)}>
                 {s.title}
               </h2>
-              <p className="st-swap max-w-[480px] text-[17px] leading-[1.6] text-[#C7C7CC]" style={EASE_DELAY(120)}>
+              <p className="st-swap max-w-[480px] text-[17px] leading-[1.6] text-[#C9D5EC]" style={EASE_DELAY(120)}>
                 {s.body}
               </p>
               <SmartLink href={s.href} className="st-swap group mt-2 inline-flex w-fit items-center gap-2 text-[15px] font-medium">
@@ -387,8 +387,8 @@ function Spotlight() {
             </div>
             <dl key={`d-${idx}`} className="grid grid-cols-2 content-center gap-px self-center overflow-hidden rounded-[20px] bg-white/10">
               {s.specs.map(([k, v], i) => (
-                <div key={k} className="st-swap bg-[#111113] p-6 md:p-7" style={EASE_DELAY(140 + i * 70)}>
-                  <dt className="text-[13px] text-[#A1A1A6]">{k}</dt>
+                <div key={k} className="st-swap bg-[#0B2150] p-6 md:p-7" style={EASE_DELAY(140 + i * 70)}>
+                  <dt className="text-[13px] text-[#A9B8D6]">{k}</dt>
                   <dd className="mt-2 font-display text-[19px] font-medium tracking-[-0.01em] md:text-[22px]">{v}</dd>
                 </div>
               ))}
@@ -405,14 +405,14 @@ function Spotlight() {
                   onClick={() => setIdx(i)}
                   className="group flex min-w-[64px] flex-1 flex-col gap-2.5 py-2 text-left"
                 >
-                  <span className={`text-[13px] transition-colors duration-300 ${i === idx ? "text-[#F2F2EF]" : "text-[#8A8A90] group-hover:text-[#C7C7CC]"}`}>
+                  <span className={`text-[13px] transition-colors duration-300 ${i === idx ? "text-[#F3F6FC]" : "text-[#8FA3C7] group-hover:text-[#C9D5EC]"}`}>
                     <span className="font-obs-mono text-[11px] opacity-60">0{i + 1}</span> {st.key}
                   </span>
                   <span className="relative h-[2px] overflow-hidden rounded-full bg-white/15">
                     {i === idx && (
                       <span
                         key={`p-${idx}`}
-                        className="st-progress absolute inset-0 rounded-full bg-[#F2F2EF]"
+                        className="st-progress absolute inset-0 rounded-full bg-[#F3F6FC]"
                         style={{ "--dur": `${STORY_MS}ms` } as CSSProperties}
                       />
                     )}
@@ -469,12 +469,12 @@ function Ecosystem() {
       <div className={wrap}>
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
-            <p className={`${eyebrow} st-reveal mb-5 text-[#5C5C62]`}>One studio · Many systems</p>
+            <p className={`${eyebrow} st-reveal mb-5 text-[#0057C3]`}>One studio · Many systems</p>
             <h2 className={`${h2} st-reveal max-w-[760px]`} style={EASE_DELAY(80)}>
               A system for every kind of work.
             </h2>
           </div>
-          <p className="st-reveal max-w-[380px] text-[17px] leading-[1.6] text-[#5C5C62]" style={EASE_DELAY(160)}>
+          <p className="st-reveal max-w-[380px] text-[17px] leading-[1.6] text-[#4F5B70]" style={EASE_DELAY(160)}>
             The products and platforms we build across cloud, productivity, security and creative tools.
           </p>
         </div>
@@ -484,7 +484,7 @@ function Ecosystem() {
             <div ref={rowRef} role="group" aria-label="Filter systems by category" className="relative flex w-max gap-1 rounded-full bg-black/[0.05] p-1">
               <span
                 aria-hidden
-                className="st-indicator absolute bottom-1 left-0 top-1 rounded-full bg-[#0B0B0C] shadow-sm"
+                className="st-indicator absolute bottom-1 left-0 top-1 rounded-full bg-[#0057C3] shadow-sm"
                 style={{ transform: `translateX(${ind.x}px)`, width: ind.w }}
               />
               {CATEGORIES.map((c) => (
@@ -495,7 +495,7 @@ function Ecosystem() {
                   aria-pressed={filter === c.id}
                   onClick={() => setFilter(c.id)}
                   className={`relative z-10 min-h-11 rounded-full px-4 text-[13px] font-medium transition-colors duration-500 ${
-                    filter === c.id ? "text-[#FAFAF8]" : "text-[#3C3C42] hover:text-[#0B0B0C]"
+                    filter === c.id ? "text-[#F6F8FC]" : "text-[#2E3A50] hover:text-[#0A1428]"
                   }`}
                 >
                   {c.label}
@@ -503,7 +503,7 @@ function Ecosystem() {
               ))}
             </div>
           </div>
-          <span className="font-obs-mono text-[12px] text-[#5C5C62]">
+          <span className="font-obs-mono text-[12px] text-[#4F5B70]">
             {list.length} {list.length === 1 ? "system" : "systems"}
           </span>
         </div>
@@ -516,15 +516,15 @@ function Ecosystem() {
               style={EASE_DELAY(i * 55)}
             >
               <div className="flex items-center justify-between">
-                <span className="font-obs-mono text-[12px] text-[#8A8A90]">DEPUP / {s.num}</span>
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: ACCENT_HEX[s.accent] === "#e2e2e6" ? "#0B0B0C" : ACCENT_HEX[s.accent] }} />
+                <span className="font-obs-mono text-[12px] text-[#5E6A80]">DEPUP / {s.num}</span>
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: ACCENT_HEX[s.accent] === "#e2e2e6" ? "#0057C3" : ACCENT_HEX[s.accent] }} />
               </div>
-              <p className="mt-10 text-[13px] text-[#5C5C62]">{s.badge}</p>
+              <p className="mt-10 text-[13px] text-[#4F5B70]">{s.badge}</p>
               <h3 className="mt-1.5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em]">{s.name}</h3>
-              <p className="mt-3 flex-1 text-[15px] leading-[1.6] text-[#3C3C42]">{s.description}</p>
+              <p className="mt-3 flex-1 text-[15px] leading-[1.6] text-[#2E3A50]">{s.description}</p>
               <div className="mt-6 flex flex-wrap gap-1.5">
                 {s.tags.slice(0, 3).map((t) => (
-                  <span key={t} className="rounded-full bg-black/[0.05] px-2.5 py-1 text-[12px] text-[#3C3C42]">
+                  <span key={t} className="rounded-full bg-black/[0.05] px-2.5 py-1 text-[12px] text-[#2E3A50]">
                     {t}
                   </span>
                 ))}
@@ -549,15 +549,15 @@ function Engineering() {
   const links = p.links.filter((l) => !l.href.includes("github.com"));
 
   return (
-    <section id="engineering" className="scroll-mt-14 bg-[#0B0B0C] py-24 text-[#F2F2EF] md:py-36">
+    <section id="engineering" className="scroll-mt-14 bg-[#061634] py-24 text-[#F3F6FC] md:py-36">
       <div className={wrap}>
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
-            <p className={`${eyebrow} st-reveal mb-5 text-[#A1A1A6]`}>Engineering foundations</p>
+            <p className={`${eyebrow} st-reveal mb-5 text-[#8AB4FF]`}>Engineering foundations</p>
             <h2 className={`${h2} st-reveal max-w-[820px]`} style={EASE_DELAY(80)}>
               Thoughtful by design.
               <br />
-              <span className="text-[#8A8A90]">Reliable by engineering.</span>
+              <span className="text-[#8FA3C7]">Reliable by engineering.</span>
             </h2>
           </div>
           <a href="#mission" className="st-reveal group inline-flex items-center gap-2 text-[15px] font-medium">
@@ -581,10 +581,10 @@ function Engineering() {
                   style={{ transform: `scaleX(${i === idx ? 1 : 0})`, transitionTimingFunction: "cubic-bezier(.22,1,.36,1)" }}
                 />
                 <span className="relative flex flex-col gap-1 pl-4">
-                  <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: i === idx ? pr.color : "#8A8A90" }}>
+                  <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: i === idx ? pr.color : "#8FA3C7" }}>
                     {pr.tag}
                   </span>
-                  <span className={`font-display text-[20px] font-semibold tracking-[-0.01em] transition-colors duration-300 ${i === idx ? "text-[#F2F2EF]" : "text-[#8A8A90] group-hover:text-[#C7C7CC]"}`}>
+                  <span className={`font-display text-[20px] font-semibold tracking-[-0.01em] transition-colors duration-300 ${i === idx ? "text-[#F3F6FC]" : "text-[#8FA3C7] group-hover:text-[#C9D5EC]"}`}>
                     {pr.shortTitle}
                   </span>
                 </span>
@@ -593,7 +593,7 @@ function Engineering() {
             ))}
           </div>
 
-          <div className="st-reveal relative overflow-hidden rounded-[28px] border border-white/10 bg-[#111113]" style={EASE_DELAY(120)}>
+          <div className="st-reveal relative overflow-hidden rounded-[28px] border border-white/10 bg-[#0B2150]" style={EASE_DELAY(120)}>
             <div aria-hidden className="st-glow pointer-events-none absolute inset-0" style={{ background: `radial-gradient(70% 60% at 85% 0%, ${p.glow}, transparent 70%)` }} />
             <div key={p.id} className="relative flex h-full flex-col gap-6 p-8 md:p-12">
               <span className="st-swap font-obs-mono text-[12px] uppercase tracking-[0.1em]" style={{ color: p.color }}>
@@ -602,22 +602,22 @@ function Engineering() {
               <h3 className="st-swap font-display text-[clamp(30px,3.6vw,46px)] font-semibold leading-[1.05] tracking-[-0.03em]" style={EASE_DELAY(60)}>
                 {p.title}
               </h3>
-              <p className="st-swap max-w-[560px] text-[17px] leading-[1.6] text-[#C7C7CC]" style={EASE_DELAY(120)}>
+              <p className="st-swap max-w-[560px] text-[17px] leading-[1.6] text-[#C9D5EC]" style={EASE_DELAY(120)}>
                 {p.desc}
               </p>
               <dl className="mt-2 grid grid-cols-1 gap-px overflow-hidden rounded-[16px] bg-white/10 sm:grid-cols-3">
                 {p.metrics.map(([k, v], i) => (
-                  <div key={k} className="st-swap bg-[#141416] p-5" style={EASE_DELAY(180 + i * 70)}>
-                    <dt className="text-[12px] text-[#A1A1A6]">{k}</dt>
+                  <div key={k} className="st-swap bg-[#0E2759] p-5" style={EASE_DELAY(180 + i * 70)}>
+                    <dt className="text-[12px] text-[#A9B8D6]">{k}</dt>
                     <dd className="mt-1.5 font-display text-[22px] font-semibold tracking-[-0.01em]">{v}</dd>
                   </div>
                 ))}
               </dl>
               {links.length > 0 && (
                 <div className="st-swap mt-auto flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 text-[14px]" style={EASE_DELAY(300)}>
-                  <span className="text-[#8A8A90]">{p.linksHeading}</span>
+                  <span className="text-[#8FA3C7]">{p.linksHeading}</span>
                   {links.map((l) => (
-                    <SmartLink key={l.label} href={safeHref(l.href)} className="inline-flex items-center gap-1 text-[#F2F2EF] underline-offset-4 hover:underline">
+                    <SmartLink key={l.label} href={safeHref(l.href)} className="inline-flex items-center gap-1 text-[#F3F6FC] underline-offset-4 hover:underline">
                       {l.label}
                       {isExternal(l.href) && <ArrowUpRight className="h-3.5 w-3.5" />}
                     </SmartLink>
@@ -658,11 +658,11 @@ function Updates() {
       <div className={wrap}>
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
-            <p className={`${eyebrow} st-reveal mb-5 text-[#5C5C62]`}>Studio updates / 2026</p>
+            <p className={`${eyebrow} st-reveal mb-5 text-[#0057C3]`}>Studio updates / 2026</p>
             <h2 className={`${h2} st-reveal`} style={EASE_DELAY(80)}>
               New work.
               <br />
-              <span className="text-[#8A8A90]">New momentum.</span>
+              <span className="text-[#7B879C]">New momentum.</span>
             </h2>
           </div>
           <div className="st-reveal flex items-center gap-2" style={EASE_DELAY(160)}>
@@ -685,19 +685,19 @@ function Updates() {
           const color = ACCENT_HEX[u.accent];
           return (
             <article key={u.num} className="st-lift group flex w-[300px] shrink-0 snap-start flex-col overflow-hidden rounded-[24px] border border-black/[0.07] bg-white sm:w-[380px]">
-              <div className="relative h-[200px] overflow-hidden bg-[#0B0B0C] text-[#F2F2EF]">
+              <div className="relative h-[200px] overflow-hidden bg-[#061634] text-[#F3F6FC]">
                 <div
                   aria-hidden
                   className="absolute inset-0 transition-transform duration-[1200ms] group-hover:scale-110"
                   style={{ background: `radial-gradient(80% 90% at 80% 20%, ${color}55, transparent 65%)`, transitionTimingFunction: "cubic-bezier(.22,1,.36,1)" }}
                 />
                 <span className="absolute bottom-5 left-6 font-display text-[64px] font-semibold leading-none tracking-[-0.04em]">{u.num}</span>
-                <span className="absolute right-6 top-5 font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C7C7CC]">{u.area}</span>
+                <span className="absolute right-6 top-5 font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C9D5EC]">{u.area}</span>
               </div>
               <div className="flex flex-1 flex-col gap-3 p-6">
-                <span className="text-[13px] text-[#5C5C62]">{u.month} 2026 · Release note</span>
+                <span className="text-[13px] text-[#4F5B70]">{u.month} 2026 · Release note</span>
                 <h3 className="font-display text-[21px] font-semibold leading-[1.25] tracking-[-0.015em]">{u.title}</h3>
-                <p className="flex-1 text-[14px] leading-[1.6] text-[#5C5C62]">{u.body}</p>
+                <p className="flex-1 text-[14px] leading-[1.6] text-[#4F5B70]">{u.body}</p>
                 <SmartLink href={hrefForSystem(u.systemId)} className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-[14px] font-medium">
                   Explore update <ArrowRight className="st-arrow h-4 w-4" />
                 </SmartLink>
@@ -710,7 +710,7 @@ function Updates() {
 
       <div className={`${wrap} mt-6`}>
         <div className="h-[2px] overflow-hidden rounded-full bg-black/[0.07]">
-          <div className="h-full w-1/3 rounded-full bg-[#0B0B0C] transition-transform duration-300" style={{ transform: `translateX(${pos * 200}%)` }} />
+          <div className="h-full w-1/3 rounded-full bg-[#0057C3] transition-transform duration-300" style={{ transform: `translateX(${pos * 200}%)` }} />
         </div>
       </div>
     </section>
@@ -725,13 +725,13 @@ function FieldNotes() {
     <section id="notes" className="scroll-mt-14 border-t border-black/[0.07] py-24 md:py-36">
       <div className={`${wrap} grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.3fr)]`}>
         <div>
-          <p className={`${eyebrow} st-reveal mb-5 text-[#5C5C62]`}>Notes from the studio</p>
+          <p className={`${eyebrow} st-reveal mb-5 text-[#0057C3]`}>Notes from the studio</p>
           <h2 className={`${h2} st-reveal`} style={EASE_DELAY(80)}>
             Ideas into
             <br />
             working systems.
           </h2>
-          <p className="st-reveal mt-6 text-[17px] text-[#5C5C62]" style={EASE_DELAY(160)}>
+          <p className="st-reveal mt-6 text-[17px] text-[#4F5B70]" style={EASE_DELAY(160)}>
             A closer look at the choices behind the tools.
           </p>
         </div>
@@ -747,20 +747,20 @@ function FieldNotes() {
                   className="flex w-full items-center justify-between gap-6 py-7 text-left"
                 >
                   <span className="flex flex-col gap-1.5">
-                    <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#5C5C62]">
+                    <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#4F5B70]">
                       Field note / {n.num} / {n.area}
                     </span>
                     <span className="font-display text-[22px] font-semibold tracking-[-0.015em] md:text-[26px]">{n.title}</span>
                   </span>
-                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/15 transition-transform duration-500 ${on ? "rotate-45 bg-[#0B0B0C] text-[#FAFAF8]" : ""}`}>
+                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/15 transition-transform duration-500 ${on ? "rotate-45 border-transparent bg-[#0057C3] text-white" : ""}`}>
                     <Plus className="h-4 w-4" />
                   </span>
                 </button>
                 <div className={`st-acc ${on ? "is-open" : ""}`}>
                   <div>
                     <div className="max-w-[620px] pb-8">
-                      <p className="text-[17px] leading-[1.6] text-[#3C3C42]">{n.body}</p>
-                      <p className="mt-4 text-[15px] leading-[1.65] text-[#5C5C62]">{n.more}</p>
+                      <p className="text-[17px] leading-[1.6] text-[#2E3A50]">{n.body}</p>
+                      <p className="mt-4 text-[15px] leading-[1.65] text-[#4F5B70]">{n.more}</p>
                       <SmartLink href={hrefForSystem(n.systemId)} className="group mt-5 inline-flex min-h-11 items-center gap-1.5 text-[14px] font-medium">
                         Explore this system <ArrowRight className="st-arrow h-4 w-4" />
                       </SmartLink>
@@ -781,20 +781,20 @@ function FieldNotes() {
 function Mission() {
   return (
     <section id="mission" className="scroll-mt-14 px-3 pb-3 md:px-6 md:pb-6">
-      <div className="relative overflow-hidden rounded-[32px] bg-[#0B0B0C] text-[#F2F2EF]">
-        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(50% 60% at 50% 110%, rgba(143,176,255,0.28), transparent 70%)" }} />
+      <div className="relative overflow-hidden rounded-[32px] bg-[#061634] text-[#F3F6FC]" style={{ background: "linear-gradient(160deg, #0B3A8C 0%, #0A2463 45%, #061634 100%)" }}>
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(50% 60% at 50% 110%, rgba(31,111,235,0.45), transparent 70%)" }} />
         <div className="relative mx-auto flex max-w-[1000px] flex-col items-center px-6 py-28 text-center md:py-40">
-          <p className={`${eyebrow} st-reveal text-[#A1A1A6]`}>Independent software studio · Indonesia</p>
+          <p className={`${eyebrow} st-reveal text-[#8AB4FF]`}>Independent software studio · Indonesia</p>
           <h2 className="st-reveal mt-7 font-display text-[clamp(44px,7.5vw,104px)] font-semibold leading-[0.98] tracking-[-0.045em]" style={EASE_DELAY(80)}>
             Built to move
             <br />
             real work forward.
           </h2>
-          <p className="st-reveal mt-8 max-w-[600px] text-[19px] leading-[1.55] text-[#C7C7CC]" style={EASE_DELAY(160)}>
+          <p className="st-reveal mt-8 max-w-[600px] text-[19px] leading-[1.55] text-[#C9D5EC]" style={EASE_DELAY(160)}>
             We make thoughtful software, useful infrastructure, and connected tools for the people who put them to work.
           </p>
           <div className="st-reveal mt-11 flex flex-wrap justify-center gap-3" style={EASE_DELAY(240)}>
-            <a href="#ecosystem" className="group inline-flex items-center gap-2 rounded-full bg-[#F2F2EF] px-6 py-3.5 text-[15px] font-medium text-[#0B0B0C] transition-transform duration-300 hover:scale-[1.03]">
+            <a href="#ecosystem" className="group inline-flex items-center gap-2 rounded-full bg-[#F3F6FC] px-6 py-3.5 text-[15px] font-medium text-[#0A1428] transition-transform duration-300 hover:scale-[1.03]">
               Explore the ecosystem <ArrowRight className="st-arrow h-4 w-4" />
             </a>
             <a href={CONTACT} className="inline-flex items-center rounded-full border border-white/20 px-6 py-3.5 text-[15px] font-medium transition-colors hover:border-white/50">
@@ -851,7 +851,7 @@ function StudioFooter() {
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <div className="flex flex-col gap-5">
           <a href="#spotlight" className="flex items-center gap-2.5 font-display text-[16px] font-semibold">
-            <span aria-hidden className="grid h-7 w-7 place-items-center rounded-[8px] bg-[#0B0B0C] text-[13px] text-[#FAFAF8]">
+            <span aria-hidden className="grid h-7 w-7 place-items-center rounded-[8px] bg-[#0057C3] text-[13px] text-[#F6F8FC]">
               D
             </span>
             Depup Studio
@@ -859,7 +859,7 @@ function StudioFooter() {
           <p className="font-display text-[22px] font-semibold leading-[1.25] tracking-[-0.015em]">
             Independent by nature.
             <br />
-            <span className="text-[#8A8A90]">Connected by design.</span>
+            <span className="text-[#7B879C]">Connected by design.</span>
           </p>
         </div>
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
@@ -867,7 +867,7 @@ function StudioFooter() {
             <div key={col.title} className="flex flex-col gap-3 text-[14px]">
               <h3 className="text-[13px] font-semibold">{col.title}</h3>
               {col.links.map((l) => (
-                <SmartLink key={l.label} href={l.href} className="w-fit text-[#5C5C62] transition-colors hover:text-[#0B0B0C]">
+                <SmartLink key={l.label} href={l.href} className="w-fit text-[#4F5B70] transition-colors hover:text-[#0A1428]">
                   {l.label}
                 </SmartLink>
               ))}
@@ -875,13 +875,13 @@ function StudioFooter() {
           ))}
         </div>
       </div>
-      <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-black/[0.07] pt-6 text-[13px] text-[#5C5C62]">
+      <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-black/[0.07] pt-6 text-[13px] text-[#4F5B70]">
         <span>© 2026 Depup Studio. Made with intent.</span>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-[#0B0B0C]">
+          <Link href="/privacy" className="hover:text-[#0A1428]">
             Privacy
           </Link>
-          <a href={CONTACT} className="hover:text-[#0B0B0C]">
+          <a href={CONTACT} className="hover:text-[#0A1428]">
             Contact
           </a>
         </div>
@@ -895,7 +895,7 @@ function StudioFooter() {
 export function StudioHome() {
   useReveal();
   return (
-    <div className="st-root min-h-screen bg-[#FAFAF8] font-sans text-[#0B0B0C] antialiased selection:bg-[#0B0B0C] selection:text-[#FAFAF8]">
+    <div className="st-root min-h-screen bg-[#F6F8FC] font-sans text-[#0A1428] antialiased selection:bg-[#0057C3] selection:text-[#F6F8FC]">
       <StudioNav />
       <main>
         <Spotlight />
