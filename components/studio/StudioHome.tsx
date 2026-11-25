@@ -636,25 +636,42 @@ function Engineering() {
 
 function Updates() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState(0);
+  const [view, setView] = useState({ left: 0, ratio: 1 / 3, atStart: true, atEnd: false });
 
   const scrollBy = (dir: number) => {
     const el = trackRef.current;
     if (!el) return;
     const card = el.querySelector<HTMLElement>("article");
-    el.scrollBy({ left: dir * ((card?.offsetWidth ?? 360) + 20), behavior: reduced() ? "auto" : "smooth" });
+    const gap = parseFloat(getComputedStyle(el).columnGap || "20") || 20;
+    el.scrollBy({ left: dir * ((card?.offsetWidth ?? 360) + gap), behavior: reduced() ? "auto" : "smooth" });
   };
 
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    const onScroll = () => setPos(el.scrollLeft / Math.max(1, el.scrollWidth - el.clientWidth));
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      setView({
+        left: el.scrollLeft / Math.max(1, el.scrollWidth),
+        ratio: el.clientWidth / Math.max(1, el.scrollWidth),
+        atStart: el.scrollLeft <= 2,
+        atEnd: el.scrollLeft >= max - 2,
+      });
+    };
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
+  const navBtn =
+    "grid h-11 w-11 place-items-center rounded-full border border-black/15 transition-all duration-300 hover:border-[#0057C3] hover:text-[#0057C3] disabled:pointer-events-none disabled:opacity-30";
+
   return (
-    <section id="updates" className="scroll-mt-14 overflow-hidden py-24 md:py-36">
+    <section id="updates" className="scroll-mt-14 py-24 md:py-36">
       <div className={wrap}>
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
@@ -666,51 +683,54 @@ function Updates() {
             </h2>
           </div>
           <div className="st-reveal flex items-center gap-2" style={EASE_DELAY(160)}>
-            <button type="button" aria-label="Previous release" onClick={() => scrollBy(-1)} className="grid h-11 w-11 place-items-center rounded-full border border-black/15 transition-colors hover:border-black/40">
+            <button type="button" aria-label="Previous release" disabled={view.atStart} onClick={() => scrollBy(-1)} className={navBtn}>
               <ArrowLeft className="h-4 w-4" />
             </button>
-            <button type="button" aria-label="Next release" onClick={() => scrollBy(1)} className="grid h-11 w-11 place-items-center rounded-full border border-black/15 transition-colors hover:border-black/40">
+            <button type="button" aria-label="Next release" disabled={view.atEnd} onClick={() => scrollBy(1)} className={navBtn}>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
-      </div>
 
-      <div
-        ref={trackRef}
-        className="st-snap st-track st-reveal mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4"
-        style={EASE_DELAY(200)}
-      >
-        {UPDATES.map((u) => {
-          const color = ACCENT_HEX[u.accent];
-          return (
-            <article key={u.num} className="st-lift group flex w-[300px] shrink-0 snap-start flex-col overflow-hidden rounded-[24px] border border-black/[0.07] bg-white sm:w-[380px]">
-              <div className="relative h-[200px] overflow-hidden bg-[#061634] text-[#F3F6FC]">
-                <div
-                  aria-hidden
-                  className="absolute inset-0 transition-transform duration-[1200ms] group-hover:scale-110"
-                  style={{ background: `radial-gradient(80% 90% at 80% 20%, ${color}55, transparent 65%)`, transitionTimingFunction: "cubic-bezier(.22,1,.36,1)" }}
-                />
-                <span className="absolute bottom-5 left-6 font-display text-[64px] font-semibold leading-none tracking-[-0.04em]">{u.num}</span>
-                <span className="absolute right-6 top-5 font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C9D5EC]">{u.area}</span>
-              </div>
-              <div className="flex flex-1 flex-col gap-3 p-6">
-                <span className="text-[13px] text-[#4F5B70]">{u.month} 2026 · Release note</span>
-                <h3 className="font-display text-[21px] font-semibold leading-[1.25] tracking-[-0.015em]">{u.title}</h3>
-                <p className="flex-1 text-[14px] leading-[1.6] text-[#4F5B70]">{u.body}</p>
-                <SmartLink href={hrefForSystem(u.systemId)} className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-[14px] font-medium">
-                  Explore update <ArrowRight className="st-arrow h-4 w-4" />
-                </SmartLink>
-              </div>
-            </article>
-          );
-        })}
-        <div aria-hidden className="w-1 shrink-0" />
-      </div>
+        <div
+          ref={trackRef}
+          className="st-snap st-reveal mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-6 pt-2"
+          style={EASE_DELAY(200)}
+        >
+          {UPDATES.map((u) => {
+            const color = ACCENT_HEX[u.accent];
+            return (
+              <article
+                key={u.num}
+                className="group flex w-full shrink-0 snap-start flex-col overflow-hidden rounded-[24px] border border-black/[0.07] bg-white transition-[border-color,transform] duration-500 hover:border-[#0057C3]/30 sm:w-[calc((100%-20px)/2)] lg:w-[calc((100%-40px)/3)]"
+              >
+                <div className="relative h-[190px] overflow-hidden bg-[#061634] text-[#F3F6FC]">
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 transition-transform duration-[1200ms] group-hover:scale-110"
+                    style={{ background: `radial-gradient(80% 90% at 80% 20%, ${color}55, transparent 65%)`, transitionTimingFunction: "cubic-bezier(.22,1,.36,1)" }}
+                  />
+                  <span className="absolute bottom-5 left-6 font-display text-[60px] font-semibold leading-none tracking-[-0.04em]">{u.num}</span>
+                  <span className="absolute right-6 top-5 font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C9D5EC]">{u.area}</span>
+                </div>
+                <div className="flex flex-1 flex-col gap-3 p-6">
+                  <span className="text-[13px] text-[#4F5B70]">{u.month} 2026 · Release note</span>
+                  <h3 className="font-display text-[20px] font-semibold leading-[1.25] tracking-[-0.015em]">{u.title}</h3>
+                  <p className="flex-1 text-[14px] leading-[1.6] text-[#4F5B70]">{u.body}</p>
+                  <SmartLink href={hrefForSystem(u.systemId)} className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-[14px] font-medium text-[#0057C3]">
+                    Explore update <ArrowRight className="st-arrow h-4 w-4" />
+                  </SmartLink>
+                </div>
+              </article>
+            );
+          })}
+        </div>
 
-      <div className={`${wrap} mt-6`}>
-        <div className="h-[2px] overflow-hidden rounded-full bg-black/[0.07]">
-          <div className="h-full w-1/3 rounded-full bg-[#0057C3] transition-transform duration-300" style={{ transform: `translateX(${pos * 200}%)` }} />
+        <div className="mt-4 h-[2px] overflow-hidden rounded-full bg-black/[0.07]">
+          <div
+            className="h-full rounded-full bg-[#0057C3] transition-[transform,width] duration-300"
+            style={{ width: `${view.ratio * 100}%`, transform: `translateX(${(view.left / Math.max(0.0001, view.ratio)) * 100}%)` }}
+          />
         </div>
       </div>
     </section>
