@@ -642,6 +642,7 @@ function Spotlight() {
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hover, setHover] = useState(false);
+  const idxRef = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
 
@@ -651,12 +652,63 @@ function Spotlight() {
   }, []);
 
   const go = useCallback((d: number) => setIdx((i) => (i + d + STORIES.length) % STORIES.length), []);
+  idxRef.current = idx;
+
+  // One clock drives both the progress bar and the story change, so they can never drift apart.
+  // Hovering, the pause button, leaving the viewport or a hidden tab all freeze it in place.
+  const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const elapsed = useRef(0);
+  const holdRef = useRef(false);
+  const visibleRef = useRef(true);
+  const [onScreen, setOnScreen] = useState(true);
+  holdRef.current = paused || hover || !onScreen;
 
   useEffect(() => {
-    if (paused || hover || reduced()) return;
-    const t = window.setTimeout(() => go(1), STORY_MS);
-    return () => window.clearTimeout(t);
-  }, [idx, paused, hover, go]);
+    elapsed.current = 0;
+    barRefs.current.forEach((el, i) => {
+      if (!el) return;
+      el.style.transition = i === idx ? "none" : "transform 600ms cubic-bezier(.22,1,.36,1)";
+      el.style.transform = `scaleX(${i < idx ? 1 : 0})`;
+    });
+    if (reduced()) {
+      const el = barRefs.current[idx];
+      if (el) el.style.transform = "scaleX(1)";
+    }
+  }, [idx]);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting), { threshold: 0.25 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (reduced()) return;
+    let raf = 0;
+    let last = 0;
+    const onVis = () => (visibleRef.current = document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", onVis);
+    const tick = (now: number) => {
+      const dt = last ? Math.min(1000, now - last) : 0;
+      last = now;
+      if (!holdRef.current && visibleRef.current) elapsed.current += dt;
+      const p = Math.min(1, elapsed.current / STORY_MS);
+      const el = barRefs.current[idxRef.current];
+      if (el) el.style.transform = `scaleX(${p})`;
+      if (p >= 1) {
+        elapsed.current = 0;
+        go(1);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [go]);
 
   // Apple-style scroll: the stage grows to full width while the headline drifts back.
   useEffect(() => {
@@ -763,7 +815,7 @@ function Spotlight() {
             </dl>
           </div>
 
-          <div className={`relative flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-7 py-5 md:px-16 ${paused || hover ? "st-paused" : ""}`}>
+          <div className="relative flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-7 py-5 md:px-16">
             <div role="group" aria-label="Choose product story" className="flex flex-1 gap-5">
               {STORIES.map((st, i) => (
                 <button
@@ -776,15 +828,16 @@ function Spotlight() {
                   <span className={`text-[13px] transition-colors duration-300 ${i === idx ? "text-[#F3F6FC]" : "text-[#8FA3C7] group-hover:text-[#C9D5EC]"}`}>
                     <span className="font-obs-mono text-[11px] opacity-60">0{i + 1}</span> {st.key}
                   </span>
-                  <span className="relative h-[2px] overflow-hidden rounded-full bg-white/15">
-                    {i === idx && (
-                      <span
-                        key={`p-${idx}`}
-                        className="st-progress absolute inset-0 rounded-full bg-[#F3F6FC]"
-                        style={{ "--dur": `${STORY_MS}ms` } as CSSProperties}
-                      />
-                    )}
-                    {i < idx && <span className="absolute inset-0 rounded-full bg-white/40" />}
+                  <span className="relative h-[3px] overflow-hidden rounded-full bg-white/15">
+                    <span
+                      ref={(el) => {
+                        barRefs.current[i] = el;
+                      }}
+                      className={`absolute inset-0 origin-left rounded-full will-change-transform ${
+                        i === idx ? "bg-gradient-to-r from-[#8AB4FF] to-[#F3F6FC] shadow-[0_0_10px_rgba(138,180,255,0.7)]" : "bg-white/45"
+                      }`}
+                      style={{ transform: `scaleX(${i < idx ? 1 : 0})` }}
+                    />
                   </span>
                 </button>
               ))}
