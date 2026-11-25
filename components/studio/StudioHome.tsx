@@ -546,25 +546,86 @@ const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t 
 const range = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 
 const HOLO = "#5CE1FF";
-const DUST = Array.from({ length: 22 }, (_, i) => ({
-  left: 50 + Math.sin(i * 12.9898) * 16,
-  delay: -((i * 0.73) % 6),
-  dur: 5 + ((i * 1.7) % 4),
-  size: 1 + (i % 3),
-}));
+
+/* Galaxy: stars in spiral arms, an accretion disk and nebula clouds, drawn on one canvas. */
+type Star = { r: number; a: number; y: number; size: number; tw: number };
+const STAR_COLORS = ["#FFF6E6", "#BFE6FF", "#7FA8FF", "#B59BFF"];
+const DISK_COLORS = ["#FFFFFF", "#CDEFFF", "#8FD3FF", "#C9B5FF"];
+const NEBULA = [
+  { c: "31,111,235", x: -0.35, y: -0.1, r: 0.9 },
+  { c: "124,77,255", x: 0.4, y: 0.12, r: 0.8 },
+  { c: "92,225,255", x: 0.05, y: 0.25, r: 0.6 },
+  { c: "11,58,140", x: -0.1, y: -0.35, r: 1.1 },
+  { c: "160,120,255", x: -0.55, y: 0.3, r: 0.55 },
+  { c: "60,150,255", x: 0.6, y: -0.3, r: 0.6 },
+];
+
+const gauss = (rnd: () => number) => {
+  const u = rnd() || 1e-6;
+  const v = rnd();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+};
+const seeded = (seed: number) => () => {
+  seed = (seed * 16807) % 2147483647;
+  return (seed - 1) / 2147483646;
+};
+
+function makeGalaxy(count: number, diskCount: number) {
+  const rnd = seeded(20261125);
+  const arms = 3;
+  const groups: Star[][] = STAR_COLORS.map(() => []);
+  for (let i = 0; i < count; i++) {
+    const t = Math.pow(rnd(), 0.7);
+    const r = 0.1 + 0.9 * t;
+    const arm = i % arms;
+    const a = (arm * Math.PI * 2) / arms + r * 4.4 + gauss(rnd) * 0.32 * (1 - 0.35 * t);
+    const ci = t < 0.18 ? 0 : t < 0.5 ? (rnd() < 0.6 ? 1 : 0) : t < 0.8 ? (rnd() < 0.6 ? 2 : 1) : rnd() < 0.55 ? 3 : 2;
+    groups[ci].push({ r, a, y: gauss(rnd) * 0.03 * (1 - 0.5 * t), size: rnd() < 0.05 ? 2 : 0.7 + rnd() * 0.9, tw: rnd() * Math.PI * 2 });
+  }
+  const disk: Star[][] = DISK_COLORS.map(() => []);
+  for (let i = 0; i < diskCount; i++) {
+    const r = 1.2 + Math.pow(rnd(), 2.2) * 2.2; // in black-hole radii, dense near the hole
+    disk[Math.floor(rnd() * DISK_COLORS.length)].push({ r, a: rnd() * Math.PI * 2, y: gauss(rnd) * 0.04, size: 0.8 + rnd() * 1.2, tw: rnd() * Math.PI * 2 });
+  }
+  const dust: (Star & { c: number })[] = [];
+  for (let i = 0; i < 260; i++) {
+    const t = Math.pow(rnd(), 0.85);
+    const r = 0.12 + 0.85 * t;
+    const arm = i % arms;
+    dust.push({
+      r,
+      a: (arm * Math.PI * 2) / arms + r * 4.4 + gauss(rnd) * 0.22,
+      y: gauss(rnd) * 0.02,
+      size: 0.05 + rnd() * 0.09,
+      tw: rnd() * Math.PI * 2,
+      c: t < 0.3 ? 0 : t < 0.65 ? 1 : 2,
+    });
+  }
+  return { groups, disk, dust };
+}
+
+function makeBlob(rgb: string) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const g = c.getContext("2d")!;
+  const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  grad.addColorStop(0, `rgba(${rgb},0.55)`);
+  grad.addColorStop(0.45, `rgba(${rgb},0.18)`);
+  grad.addColorStop(1, `rgba(${rgb},0)`);
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 256, 256);
+  return c;
+}
 
 function Constellation() {
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const tileRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const orbRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const iconRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const holoRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const glassRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const labelRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const lineRefs = useRef<(SVGLineElement | null)[]>([]);
-  const coreRef = useRef<HTMLDivElement>(null);
-  const ringsRef = useRef<HTMLDivElement>(null);
-  const beamRef = useRef<HTMLDivElement>(null);
-  const fxRef = useRef<HTMLDivElement>(null);
   const copyA = useRef<HTMLDivElement>(null);
   const copyB = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
@@ -573,30 +634,46 @@ function Constellation() {
   useEffect(() => {
     const section = sectionRef.current;
     const stage = stageRef.current;
-    if (!section || !stage) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!section || !stage || !canvas || !ctx) return;
     const still = reduced();
 
     let raf = 0;
     let running = false;
     let last = 0;
-    let cur = still ? 1 : 0;
+    let cur = 0;
     let yawT = 0;
     let time = 0;
     let W = 0;
     let H = 0;
     let CY = 0;
-    let R = 300;
+    let R = 300; // app orbit radius
+    let G = 500; // galaxy radius
+    let BH = 60; // black-hole radius
+    let DPR = 1;
     let orbitScale = 1;
     const F = 900;
-    let nodes: { a: number; r: number; y: number; ex: number; ey: number }[] = [];
+    let nodes: { a: number; r: number; ex: number; ey: number }[] = [];
+    let galaxy = makeGalaxy(2600, 1100);
+    const dustImgs = ["120,200,255", "60,120,255", "150,110,255"].map(makeBlob);
+    const blobs = NEBULA.map((b) => ({ ...b, img: makeBlob(b.c) }));
 
     const computeLayout = () => {
       W = stage.clientWidth;
       H = stage.clientHeight;
       const small = W < 640;
-      orbitScale = small ? 0.68 : 1;
+      orbitScale = small ? 0.7 : 1;
       CY = H * 0.57;
-      R = small ? Math.min(W * 0.4, 170) : Math.min(W * 0.32, 420);
+      R = small ? Math.min(W * 0.4, 165) : Math.min(W * 0.3, 400);
+      G = small ? Math.max(W, H) * 0.55 : Math.max(W * 0.5, 620);
+      BH = small ? 34 : 56;
+      DPR = Math.min(window.devicePixelRatio || 1, 1.75);
+      canvas.width = Math.round(W * DPR);
+      canvas.height = Math.round(H * DPR);
+      canvas.style.width = `${W}px`;
+      canvas.style.height = `${H}px`;
+      if (small && galaxy.groups.flat().length > 1500) galaxy = makeGalaxy(1300, 600);
       const tile = small ? 60 : 76;
       const gap = small ? 26 : 40;
       const cols = Math.min(n, small ? 3 : Math.min(6, Math.ceil(Math.sqrt(n * 1.8))));
@@ -611,17 +688,11 @@ function Constellation() {
         const inRow = row === rows - 1 ? n - row * cols : cols;
         return {
           a: (k / count) * Math.PI * 2 + (onOuter ? 0 : Math.PI / count),
-          r: onOuter ? 1 : 0.58,
-          y: onOuter ? 0 : -R * 0.16,
+          r: onOuter ? 1 : 0.62,
           ex: ((i % cols) - (inRow - 1) / 2) * cell,
           ey: (row - (rows - 1) / 2) * (cell + (small ? 14 : 18)) + (small ? -10 : 0),
         };
       });
-      if (ringsRef.current) {
-        ringsRef.current.style.width = `${R * 2}px`;
-        ringsRef.current.style.height = `${R * 2}px`;
-      }
-      if (fxRef.current) fxRef.current.style.perspectiveOrigin = `50% ${CY}px`;
     };
 
     const targetProgress = () => {
@@ -630,78 +701,172 @@ function Constellation() {
       return clamp01(-rect.top / Math.max(1, total));
     };
 
-    const render = () => {
-      const p = cur;
-      const boot = easeInOut(range(p, 0, 0.16));
-      const rise = easeInOut(range(p, 0.4, 0.66));
-      const gather = easeInOut(range(p, 0.6, 0.88));
-      const material = range(p, 0.66, 0.9);
-      const settle = range(p, 0.84, 0.96);
-      const spin = 1 - easeInOut(range(p, 0.5, 0.78));
-      const flicker = boot < 1 ? 0.75 + 0.25 * Math.abs(Math.sin(time * 0.045)) : 1;
-      const tilt = (1.08 * (1 - rise)) as number; // radians, ~62deg -> 0
-      const yaw = yawT + p * 2.6;
+    const drawGalaxy = (p: number, tilt: number, boot: number, gather: number, flash: number) => {
       const cosT = Math.cos(tilt);
       const sinT = Math.sin(tilt);
       const cx = W / 2;
+      const spin = time * 0.00009 + p * 0.9;
+      const gScale = (0.55 + 0.45 * boot) * (1 + 0.35 * gather);
+      const gAlpha = boot * (1 - 0.6 * gather);
+
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalCompositeOperation = "lighter";
+
+      // Nebula clouds drift slowly.
+      blobs.forEach((b, i) => {
+        const dx = Math.sin(time * 0.00006 + i * 1.7) * 30;
+        const dy = Math.cos(time * 0.00005 + i) * 20;
+        const size = b.r * G * 1.6 * gScale;
+        ctx.globalAlpha = (0.25 + 0.2 * boot) * (1 - 0.3 * gather);
+        ctx.drawImage(b.img, cx + b.x * G * gScale - size / 2 + dx, CY + b.y * G * 0.6 * gScale - size / 2 + dy, size, size);
+      });
+
+      const project = (ox: number, oy: number, oz: number) => {
+        const y1 = oy * cosT + oz * sinT;
+        const zz = -oy * sinT + oz * cosT;
+        const s = F / (F + zz);
+        return { x: cx + ox * s, y: CY + y1 * s, s, zz };
+      };
+
+      // Soft dust clouds trace the arms.
+      for (const d of galaxy.dust) {
+        const ang = d.a + spin / (0.25 + d.r);
+        const rr = d.r * G * gScale;
+        const P = project(Math.cos(ang) * rr, Math.sin(ang) * rr, d.y * G);
+        const size = d.size * G * gScale * P.s * 2;
+        ctx.globalAlpha = gAlpha * 0.22 * (0.7 + 0.3 * Math.sin(time * 0.0007 + d.tw));
+        ctx.drawImage(dustImgs[d.c], P.x - size / 2, P.y - size * 0.35, size, size * 0.7);
+      }
+
+      // Spiral arms: inner stars orbit faster (differential rotation).
+      galaxy.groups.forEach((group, gi) => {
+        ctx.fillStyle = STAR_COLORS[gi];
+        for (const st of group) {
+          const ang = st.a + spin / (0.25 + st.r);
+          const rr = st.r * G * gScale;
+          const P = project(Math.cos(ang) * rr, Math.sin(ang) * rr, st.y * G);
+          const tw = 0.65 + 0.35 * Math.sin(time * 0.003 + st.tw);
+          ctx.globalAlpha = Math.min(1, gAlpha * tw * Math.min(1, 0.5 + 0.6 * P.s) * (0.75 + 0.6 * (1 - st.r)));
+          const sz = st.size * P.s;
+          ctx.fillRect(P.x - sz / 2, P.y - sz / 2, sz, sz);
+        }
+      });
+
+      // Black hole with accretion disk; back half drawn before the shadow, front half after.
+      const bh = BH * (1 - gather) * (0.5 + 0.5 * boot);
+      if (bh > 0.5) {
+        const glow = ctx.createRadialGradient(cx, CY, bh * 0.8, cx, CY, bh * 4.2);
+        glow.addColorStop(0, "rgba(140,210,255,0.55)");
+        glow.addColorStop(0.35, "rgba(92,140,255,0.18)");
+        glow.addColorStop(1, "rgba(60,80,255,0)");
+        ctx.globalAlpha = boot;
+        ctx.fillStyle = glow;
+        ctx.fillRect(cx - bh * 4.2, CY - bh * 4.2, bh * 8.4, bh * 8.4);
+
+        const diskSpin = time * 0.0009 + p * 3;
+        const drawDisk = (front: boolean) => {
+          galaxy.disk.forEach((group, gi) => {
+            ctx.fillStyle = DISK_COLORS[gi];
+            for (const st of group) {
+              const ang = st.a + diskSpin / st.r;
+              const sn = Math.sin(ang);
+              if (front !== sn > 0) continue;
+              const rr = st.r * bh;
+              const P = project(Math.cos(ang) * rr, sn * rr, st.y * bh);
+              const doppler = 0.75 + 0.25 * Math.cos(ang); // one side a little brighter, like a real disk
+              ctx.globalAlpha = boot * doppler * (0.5 + 0.5 * Math.sin(time * 0.004 + st.tw) ** 2);
+              const sz = st.size * P.s;
+              ctx.fillRect(P.x - sz / 2, P.y - sz / 2, sz, sz);
+            }
+          });
+        };
+        drawDisk(false);
+
+        ctx.globalCompositeOperation = "source-over";
+        const hole = ctx.createRadialGradient(cx, CY, 0, cx, CY, bh * 1.05);
+        hole.addColorStop(0, "rgba(0,0,0,1)");
+        hole.addColorStop(0.86, "rgba(0,0,0,1)");
+        hole.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.globalAlpha = boot;
+        ctx.fillStyle = hole;
+        ctx.beginPath();
+        ctx.arc(cx, CY, bh * 1.05, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = boot * 0.9;
+        ctx.strokeStyle = "rgba(200,240,255,0.9)";
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = HOLO;
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.arc(cx, CY, bh * 1.02, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        drawDisk(true);
+      }
+
+      if (flash > 0.01) {
+        const f = ctx.createRadialGradient(cx, CY, 0, cx, CY, Math.max(W, H) * 0.6);
+        f.addColorStop(0, `rgba(200,235,255,${0.55 * flash})`);
+        f.addColorStop(0.25, `rgba(92,160,255,${0.22 * flash})`);
+        f.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = f;
+        ctx.fillRect(0, 0, W, H);
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    };
+
+    const render = () => {
+      const p = cur;
+      const boot = easeInOut(range(p, 0, 0.16));
+      const rise = easeInOut(range(p, 0.38, 0.64));
+      const gather = easeInOut(range(p, 0.6, 0.88));
+      const material = easeInOut(range(p, 0.68, 0.9));
+      const settle = range(p, 0.84, 0.96);
+      const spin = 1 - easeInOut(range(p, 0.5, 0.78));
+      const flashT = range(p, 0.58, 0.76);
+      const flash = Math.sin(flashT * Math.PI) * 0.9;
+      const tilt = 1.2 - 0.78 * rise; // ~69deg -> ~24deg: the galaxy turns toward you
+      const yaw = yawT + p * 2.4;
+      const cosT = Math.cos(tilt);
+      const sinT = Math.sin(tilt);
+
+      drawGalaxy(p, tilt, boot, gather, flash);
 
       nodes.forEach((N, i) => {
         const a = N.a + yaw;
         const ox = Math.cos(a) * R * N.r;
-        const oy = Math.sin(a) * R * N.r + N.y + Math.sin(time * 0.0011 + i * 1.3) * 7 * spin;
-        const y1 = oy * cosT;
-        const z1 = -oy * sinT + (N.y ? 0 : 0);
-        const depth = Math.sin(a) * N.r; // -1 back .. 1 front (bottom = front)
-        const zz = -depth * R * sinT;
+        const oy = Math.sin(a) * R * N.r;
+        const bob = Math.sin(time * 0.0011 + i * 1.3) * 6 * spin;
+        const zz = -oy * sinT;
         const s = F / (F + zz);
         const px = ox * s;
-        const py = y1 * s;
+        const py = oy * cosT * s + bob;
         const x = px + (N.ex - px) * gather;
         const y = py + (N.ey - py) * gather;
-        const front = (depth + 1) / 2;
-        const sc = (s * orbitScale * (0.82 + 0.18 * front) * (1 - gather) + gather) * (0.35 + 0.65 * boot);
-        const op = boot * flicker * ((1 - gather) * (0.35 + 0.65 * front) + gather);
-        const turn = (1 - gather) * Math.cos(a) * -28;
+        const front = (Math.sin(a) * N.r + 1) / 2;
+        const sc = (s * orbitScale * (0.78 + 0.22 * front) * (1 - gather) + gather) * (0.3 + 0.7 * boot);
+        const op = boot * ((1 - gather) * (0.3 + 0.7 * front) + gather);
         const el = tileRefs.current[i];
         if (el) {
-          el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) perspective(700px) rotateY(${turn}deg) rotateX(${(1 - rise) * 18}deg) scale(${sc})`;
+          el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${sc})`;
           el.style.opacity = String(op);
           el.style.zIndex = String(Math.round(100 + front * 100));
         }
+        const orb = orbRefs.current[i];
+        if (orb) orb.style.borderRadius = `${50 - 21 * material}%`;
         const ic = iconRefs.current[i];
-        if (ic) ic.style.opacity = String(0.25 + 0.75 * material);
-        const ho = holoRefs.current[i];
-        if (ho) ho.style.opacity = String(1 - material);
+        if (ic) ic.style.opacity = String(0.55 + 0.45 * material);
+        const gl = glassRefs.current[i];
+        if (gl) gl.style.opacity = String(1 - material);
         const lb = labelRefs.current[i];
         if (lb) lb.style.opacity = String(settle);
-        const ln = lineRefs.current[i];
-        if (ln) {
-          ln.setAttribute("x1", String(cx));
-          ln.setAttribute("y1", String(CY));
-          ln.setAttribute("x2", String(cx + x));
-          ln.setAttribute("y2", String(CY + y));
-          ln.style.opacity = String(boot * (1 - gather) * (0.15 + 0.5 * front));
-        }
-        void z1;
       });
 
-      if (ringsRef.current) {
-        ringsRef.current.style.transform = `translate(-50%, -50%) rotateX(${(tilt * 180) / Math.PI}deg) scale(${(0.4 + 0.6 * boot) * (1 - 0.22 * rise) * (1 - 0.3 * gather)})`;
-        ringsRef.current.style.opacity = String(boot * flicker * (1 - gather));
-        ringsRef.current.style.top = `${CY}px`;
-      }
-      if (beamRef.current) {
-        beamRef.current.style.opacity = String(boot * (1 - rise) * 0.55);
-        beamRef.current.style.top = `${CY}px`;
-        beamRef.current.style.transform = `translateX(-50%) scaleY(${0.3 + 0.7 * boot})`;
-      }
-      if (coreRef.current) {
-        const c = 1 - easeInOut(range(p, 0.56, 0.74));
-        coreRef.current.style.opacity = String(c * boot * flicker);
-        coreRef.current.style.top = `${CY}px`;
-        coreRef.current.style.transform = `translate(-50%, -50%) translateY(${Math.sin(time * 0.0016) * 6 * spin}px) scale(${0.6 + 0.4 * boot - 0.25 * (1 - c)})`;
-      }
-      if (fxRef.current) fxRef.current.style.setProperty("--holo", String(boot * (1 - gather)));
       const tOut = easeInOut(range(p, 0.43, 0.5));
       const tIn = easeInOut(range(p, 0.5, 0.58));
       if (copyA.current) {
@@ -722,22 +887,17 @@ function Constellation() {
       last = now;
       time += dt;
       const target = targetProgress();
-      // Critically-damped follow: smooth even when the wheel jumps.
-      cur += (target - cur) * (1 - Math.exp(-dt / 140));
+      // Damped follow keeps motion smooth even when the wheel jumps.
+      cur += (target - cur) * (1 - Math.exp(-dt / 150));
       if (Math.abs(target - cur) < 0.0005) cur = target;
-      const spin = 1 - easeInOut(range(cur, 0.5, 0.78));
-      yawT += dt * 0.00022 * spin;
+      yawT += dt * 0.0002 * (1 - easeInOut(range(cur, 0.5, 0.78)));
       render();
       if (running) raf = requestAnimationFrame(tick);
     };
 
     computeLayout();
-    if (still) {
-      render();
-    } else {
-      cur = targetProgress();
-      render();
-    }
+    cur = still ? 1 : targetProgress();
+    render();
 
     const io = new IntersectionObserver(
       ([e]) => {
@@ -768,56 +928,10 @@ function Constellation() {
   }, [n]);
 
   return (
-    <section ref={sectionRef} aria-label="The Depup ecosystem" className="relative h-[280vh] bg-[#030B1F] text-[#F3F6FC] md:h-[330vh]">
+    <section ref={sectionRef} aria-label="The Depup ecosystem" className="relative h-[280vh] bg-[#02060F] text-[#F3F6FC] md:h-[330vh]">
       <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(60% 55% at 50% 60%, rgba(31,111,235,0.32), transparent 72%)" }} />
-        <div aria-hidden className="st-grid pointer-events-none absolute inset-0 opacity-[0.06]" />
-
-        <div ref={fxRef} aria-hidden className="st-holo pointer-events-none absolute inset-0" style={{ perspective: "900px" }}>
-          <div ref={beamRef} className="st-beam absolute left-1/2" />
-          <div ref={ringsRef} className="absolute left-1/2" style={{ transformStyle: "preserve-3d" }}>
-            <span className="st-ring absolute inset-0 rounded-full border" style={{ borderColor: `${HOLO}55` }} />
-            <span className="st-ring st-spin absolute inset-[7%] rounded-full border border-dashed" style={{ borderColor: `${HOLO}66` }} />
-            <span className="st-ring st-arcs st-spin-rev absolute inset-[16%] rounded-full" />
-            <span className="st-ring st-ticks st-spin-slow absolute inset-[-6%] rounded-full" />
-            <span className="st-ring absolute inset-[30%] rounded-full" style={{ background: `radial-gradient(closest-side, ${HOLO}33, transparent)` }} />
-          </div>
-          <div className="absolute inset-x-0 bottom-0 h-[60%]">
-            {DUST.map((d, i) => (
-              <span
-                key={i}
-                className="st-dust absolute bottom-0 rounded-full"
-                style={{ left: `${d.left}%`, width: d.size, height: d.size, background: HOLO, animationDelay: `${d.delay}s`, animationDuration: `${d.dur}s` }}
-              />
-            ))}
-          </div>
-          <div className="st-scan absolute inset-0" />
-        </div>
-
-        <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full">
-          {SYSTEMS.map((s, i) => (
-            <line
-              key={s.id}
-              ref={(el) => {
-                lineRefs.current[i] = el;
-              }}
-              stroke={HOLO}
-              strokeWidth="1"
-              strokeDasharray="2 6"
-              style={{ opacity: 0 }}
-            />
-          ))}
-        </svg>
-
-        <div
-          ref={coreRef}
-          aria-hidden
-          className="absolute left-1/2 z-[150] grid h-16 w-16 place-items-center rounded-[20px] bg-[#0057C3]/90 font-display text-[28px] font-semibold text-white md:h-24 md:w-24 md:rounded-[24px] md:text-[40px]"
-          style={{ boxShadow: `0 0 60px ${HOLO}88, inset 0 0 24px ${HOLO}55`, border: `1px solid ${HOLO}99` }}
-        >
-          <span className="st-pulse absolute inset-0 rounded-[20px] border md:rounded-[24px]" style={{ borderColor: `${HOLO}80` }} />
-          D
-        </div>
+        <canvas ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-0" />
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(2,6,15,0.85) 100%)" }} />
 
         <div className="absolute left-1/2" style={{ top: "57%" }}>
           {SYSTEMS.map((s, i) => {
@@ -835,30 +949,27 @@ function Constellation() {
                 style={{ opacity: 0 }}
               >
                 <span
-                  className="relative block rounded-[18px] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-105 sm:rounded-[22px]"
-                  style={{ boxShadow: `0 14px 44px -14px ${glow}aa` }}
+                  ref={(el) => {
+                    orbRefs.current[i] = el;
+                  }}
+                  className="relative block h-[60px] w-[60px] overflow-hidden transition-transform duration-500 group-hover:scale-110 sm:h-[76px] sm:w-[76px]"
+                  style={{ borderRadius: "50%", boxShadow: `0 0 40px -6px ${glow}cc, 0 0 90px -20px ${HOLO}88` }}
                 >
                   <span
                     ref={(el) => {
                       iconRefs.current[i] = el;
                     }}
-                    className="block"
-                    style={{ opacity: 0.25 }}
+                    className="block h-full w-full"
                   >
-                    <AppIcon
-                      id={s.id}
-                      category={s.category}
-                      tone="dark"
-                      className="block h-[60px] w-[60px] overflow-hidden rounded-[18px] sm:h-[76px] sm:w-[76px] sm:rounded-[22px]"
-                      glyphClass="h-7 w-7 sm:h-9 sm:w-9"
-                    />
+                    <AppIcon id={s.id} category={s.category} tone="dark" className="block h-full w-full" glyphClass="h-7 w-7 sm:h-9 sm:w-9" />
                   </span>
                   <span
                     ref={(el) => {
-                      holoRefs.current[i] = el;
+                      glassRefs.current[i] = el;
                     }}
                     aria-hidden
-                    className="st-holo-tile pointer-events-none absolute inset-0 rounded-[18px] sm:rounded-[22px]"
+                    className="st-orb pointer-events-none absolute inset-0"
+                    style={{ borderRadius: "inherit" }}
                   />
                 </span>
                 <span
@@ -892,8 +1003,8 @@ function Constellation() {
 
         <div className={`${wrap} absolute inset-x-0 bottom-8 z-[250] flex items-center gap-4`}>
           <span className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#8FA3C7]">Scroll</span>
-          <div className="h-px flex-1 overflow-hidden bg-white/15">
-            <div ref={barRef} className="h-full origin-left" style={{ transform: "scaleX(0)", background: HOLO }} />
+          <div className="h-px flex-1 overflow-hidden rounded-full bg-white/15">
+            <div ref={barRef} className="h-full origin-left rounded-full" style={{ transform: "scaleX(0)", background: `linear-gradient(90deg, #1F6FEB, ${HOLO})` }} />
           </div>
           <a href="#ecosystem" className="font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C9D5EC] hover:text-white">
             Skip to systems
