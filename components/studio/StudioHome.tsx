@@ -24,10 +24,89 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { ACCENT_HEX, CATEGORIES, NOTES, PRINCIPLES, SYSTEMS, UPDATES, type Category } from "@/components/obsidian/data";
+import {
+  ACCENT_HEX,
+  CATEGORIES as ALL_CATEGORIES,
+  NOTES,
+  PRINCIPLES as ALL_PRINCIPLES,
+  SYSTEMS as ALL_SYSTEMS,
+  UPDATES as ALL_UPDATES,
+  type Category,
+  type Principle,
+} from "@/components/obsidian/data";
+import { STUDIO } from "@/lib/products";
 import "./studio.css";
 
-const CONTACT = "mailto:depupdev@gmail.com";
+const CONTACT = `mailto:${STUDIO.email}`;
+
+/**
+ * Only products the public can actually use today are shown on the homepage (checked 25 Nov 2026):
+ * - depup.cloud: live web app at depup.cloud (depup.web.id redirects there)
+ * - Sentinel-ID: live web app at sentinel-id.net
+ * - depup Office: Android APK published as GitHub release v4.4.2
+ * Other systems stay in data.ts; add an id here once it has a public site, store listing or release.
+ */
+const RELEASED = ["cloud", "office", "sentinel"];
+/* Office ships on Android today (iOS, macOS and Windows are "soon" in lib/products.ts), so its copy says only that. */
+const SYSTEM_FACTS: Record<string, Partial<(typeof ALL_SYSTEMS)[number]>> = {
+  sentinel: {
+    description: "Passive security audits for domains you own. GET-only, same-origin and capped at 100 requests per scan.",
+  },
+  office: {
+    description: "Documents, spreadsheets, presentations, PDF and scanning — offline on your Android device. iOS, macOS and Windows are on the way.",
+    detail: "Documents, spreadsheets, presentations, PDF and a scanner in one app. Everything runs on the device, so it works without a connection.",
+    tags: ["Android", "Offline", "iOS · macOS · Windows soon"],
+    specs: [
+      ["Platform", "Android"],
+      ["Processing", "On-device"],
+      ["Download", "APK release"],
+      ["Coming", "iOS · macOS · Windows"],
+    ],
+  },
+};
+const SYSTEMS = ALL_SYSTEMS.filter((s) => RELEASED.includes(s.id)).map((s) => ({ ...s, ...SYSTEM_FACTS[s.id] }));
+const CATEGORIES = ALL_CATEGORIES.filter((c) => c.id === "all" || SYSTEMS.some((s) => s.category === c.id));
+// The Office "brings document work to Windows" note is left out: the Windows build is not released yet.
+const UPDATES = ALL_UPDATES.filter((u) => RELEASED.includes(u.systemId) && !/windows/i.test(u.title));
+const NOTE_FACTS: Record<string, { more: string }> = {
+  office: { more: "Capture happens on the device, so a scan works on a plane or in a basement, with no account and no upload." },
+};
+const LIVE_NOTES = NOTES.filter((n) => RELEASED.includes(n.systemId)).map((n) => ({ ...n, ...NOTE_FACTS[n.systemId] }));
+const NUMBER_WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
+const countWord = (n: number) => NUMBER_WORDS[n] ?? String(n);
+
+/* Principles tied to released products only, with facts that can be checked on each product's site. */
+const PRINCIPLE_FACTS: Record<string, Partial<Principle>> = {
+  "01": {
+    desc: "One dashboard to check a repo and deploy it to Vercel, Cloudflare Pages or Railway, with an MCP connector so AI assistants can work with your projects.",
+    links: [{ label: "depup.cloud", href: "https://depup.cloud", external: true }],
+    metrics: [
+      ["Targets", "Vercel · Cloudflare · Railway"],
+      ["Sign-in", "Google"],
+      ["AI", "MCP connector"],
+    ],
+  },
+  "02": {
+    metrics: [
+      ["Method", "GET / HEAD only"],
+      ["Request ceiling", "100 per scan"],
+      ["Exploits run", "0"],
+    ],
+  },
+  "05": {
+    shortDesc: "Documents, scanning and PDF tools that keep working without a connection.",
+    title: "Offline-First Tooling",
+    desc: "Documents, spreadsheets, presentations, PDF and scanning run on the device, so work continues without a connection.",
+    linksHeading: "Built into",
+    links: [{ label: "depup Office", href: "/office" }],
+    metrics: [
+      ["Network needed", "None"],
+      ["Processing", "On-device"],
+      ["Platform", "Android"],
+    ],
+  },
+};
+const PRINCIPLES: Principle[] = ALL_PRINCIPLES.filter((p) => p.id in PRINCIPLE_FACTS).map((p) => ({ ...p, ...PRINCIPLE_FACTS[p.id] }));
 const EASE_DELAY = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 
 /* ---------- helpers ---------- */
@@ -516,12 +595,12 @@ const STORIES = [
   {
     key: "Studio",
     label: "Depup Studio",
-    title: "Nine systems. One studio.",
+    title: `${countWord(SYSTEMS.length)} live products. One studio.`,
     body: "Software, infrastructure and useful tools — designed, built and run in-house.",
     specs: [
-      ["Systems", String(SYSTEMS.length)],
-      ["Platforms", "Cloud · Web · Android · Windows"],
-      ["Base", "Jakarta"],
+      ["Live products", String(SYSTEMS.length)],
+      ["Available on", "Web · Android"],
+      ["Base", STUDIO.city.split(",")[0]],
       ["Model", "Founder-led"],
     ] as [string, string][],
     href: "#ecosystem",
@@ -605,7 +684,7 @@ function Spotlight() {
       <HeroAurora />
       <div ref={copyRef} className={`${wrap} relative z-10 text-center will-change-transform`}>
         <p className={`${eyebrow} text-[#0057C3]`}>
-          <Words text="Independent systems studio · Jakarta" step={40} />
+          <Words text={`Independent systems studio · ${STUDIO.city.split(",")[0]}`} step={40} />
         </p>
         <h1 className="mx-auto mt-6 max-w-[1000px] font-display text-[clamp(52px,9vw,128px)] font-semibold leading-[0.98] tracking-[-0.045em]">
           <Words text="One studio." start={150} />
@@ -978,7 +1057,7 @@ function Constellation() {
       const cols = Math.min(n, small ? 3 : Math.min(6, Math.ceil(Math.sqrt(n * 1.8))));
       const rows = Math.ceil(n / cols);
       const cell = tile + gap;
-      const outer = Math.ceil(n * 0.6);
+      const outer = n <= 4 ? n : Math.ceil(n * 0.6);
       nodes = SYSTEMS.map((_, i) => {
         const onOuter = i < outer;
         const k = onOuter ? i : i - outer;
@@ -1509,7 +1588,7 @@ function Constellation() {
             </h2>
           </div>
           <div ref={copyB} className="absolute inset-x-0" style={{ opacity: 0 }}>
-            <p className={`${eyebrow} text-[#5CE1FF]`}>{n} systems · and counting</p>
+            <p className={`${eyebrow} text-[#5CE1FF]`}>{n} live products · more on the way</p>
             <h2 className="mx-auto mt-4 max-w-[760px] font-display text-[clamp(30px,4.4vw,56px)] font-semibold leading-[1.05] tracking-[-0.035em]">
               Then they move as one studio.
             </h2>
@@ -1799,7 +1878,7 @@ function Updates() {
               <span className="text-[#7B879C]">New momentum.</span>
             </h2>
           </div>
-          <div className="st-reveal flex items-center gap-2" style={EASE_DELAY(160)}>
+          <div className={`st-reveal flex items-center gap-2 ${view.atStart && view.atEnd ? "invisible" : ""}`} style={EASE_DELAY(160)}>
             <button type="button" aria-label="Previous release" disabled={view.atStart} onClick={() => scrollBy(-1)} className={navBtn}>
               <ArrowLeft className="h-4 w-4" />
             </button>
@@ -1843,7 +1922,7 @@ function Updates() {
           })}
         </div>
 
-        <div className="mt-4 h-[2px] overflow-hidden rounded-full bg-black/[0.07]">
+        <div className={`mt-4 h-[2px] overflow-hidden rounded-full bg-black/[0.07] ${view.ratio >= 0.999 ? "invisible" : ""}`}>
           <div
             className="h-full rounded-full bg-[#0057C3] transition-[transform,width] duration-300"
             style={{ width: `${view.ratio * 100}%`, transform: `translateX(${(view.left / Math.max(0.0001, view.ratio)) * 100}%)` }}
@@ -1873,7 +1952,7 @@ function FieldNotes() {
           </p>
         </div>
         <div className="st-reveal border-t border-black/10" style={EASE_DELAY(120)}>
-          {NOTES.map((n, i) => {
+          {LIVE_NOTES.map((n, i) => {
             const on = open === i;
             return (
               <div key={n.num} className="border-b border-black/10">
@@ -1948,36 +2027,35 @@ function Mission() {
 
 const FOOTER: { title: string; links: { label: string; href: string }[] }[] = [
   {
-    title: "Platforms",
+    title: "Products",
     links: [
       { label: "depup.cloud", href: "https://depup.cloud" },
-      { label: "depup.web.id", href: "https://depup.web.id" },
-      { label: "Depup Code", href: "#ecosystem" },
-      { label: "CikAi Gateway", href: "#ecosystem" },
-    ],
-  },
-  {
-    title: "Productivity",
-    links: [
       { label: "depup Office", href: "/office" },
-      { label: "MotionKu", href: "#ecosystem" },
-      { label: "DVibes", href: "#ecosystem" },
-    ],
-  },
-  {
-    title: "Security",
-    links: [
       { label: "Sentinel-ID", href: "/sentinel" },
-      { label: "sentinel-id.net", href: "https://sentinel-id.net" },
-      { label: "Safety approach", href: "/sentinel#safety" },
     ],
   },
   {
-    title: "Infrastructure",
+    title: "Use them",
     links: [
-      { label: "Kasyaf Redis Cloud", href: "#ecosystem" },
-      { label: "Depup OS Dev", href: "#ecosystem" },
+      { label: "Open depup.cloud", href: "https://depup.cloud" },
+      { label: "sentinel-id.net", href: "https://sentinel-id.net" },
+      { label: "Get depup Office", href: "/office" },
+    ],
+  },
+  {
+    title: "Trust",
+    links: [
+      { label: "Sentinel safety approach", href: "/sentinel#safety" },
+      { label: "Office privacy", href: "/office/privacy-policy" },
       { label: "API Status", href: "/api/status" },
+    ],
+  },
+  {
+    title: "Studio",
+    links: [
+      { label: "Ecosystem", href: "#ecosystem" },
+      { label: "Field notes", href: "#notes" },
+      { label: "Contact", href: `mailto:${STUDIO.email}` },
     ],
   },
 ];
