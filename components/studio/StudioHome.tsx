@@ -651,7 +651,6 @@ function Spotlight() {
   const [ready, setReady] = useState(false);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [hover, setHover] = useState(false);
   const idxRef = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
@@ -671,7 +670,9 @@ function Spotlight() {
   const holdRef = useRef(false);
   const visibleRef = useRef(true);
   const [onScreen, setOnScreen] = useState(true);
-  holdRef.current = paused || hover || !onScreen;
+  // Like Apple's carousels, stories keep playing under the pointer; only the pause button,
+  // scrolling the stage away or hiding the tab stops the clock.
+  holdRef.current = paused || !onScreen;
 
   useEffect(() => {
     elapsed.current = 0;
@@ -689,7 +690,7 @@ function Spotlight() {
   useEffect(() => {
     const el = stageRef.current;
     if (!el || !("IntersectionObserver" in window)) return;
-    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting), { threshold: 0.25 });
+    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting), { threshold: 0.1 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -825,8 +826,6 @@ function Spotlight() {
       <div className="relative z-10 mt-16 px-3 md:mt-24 md:px-6">
         <div
           ref={stageRef}
-          onMouseEnter={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
           className="relative mx-auto max-w-[1400px] origin-top overflow-hidden bg-[#061634] text-[#F3F6FC] will-change-transform"
           style={{ transform: "scale(0.9)", borderRadius: 32, background: "linear-gradient(155deg, #0B3A8C 0%, #0A2463 42%, #061634 100%)", backfaceVisibility: "hidden" }}
         >
