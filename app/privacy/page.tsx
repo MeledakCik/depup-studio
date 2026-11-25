@@ -18,7 +18,7 @@ const notes: Record<string, string> = {
 export default function PrivacyHubPage() {
   const products = [PRODUCTS.office, PRODUCTS.sentinel, PRODUCTS.cloud];
   return (
-    <main className="min-h-screen bg-surface text-text-primary">
+    <main lang="id" className="min-h-screen bg-surface text-text-primary">
       <ProductHeader />
       <div className="mx-auto max-w-5xl px-5 py-14 md:px-8 md:py-20">
         <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">

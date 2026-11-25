@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PRODUCT_KEYWORDS, jsonLdString, productJsonLd } from "@/lib/seo";
 import { ArrowRight, ArrowUpRight, Bot, KeyRound, Link2, Rocket, ShieldCheck } from "lucide-react";
 import { CloudPreview } from "@/components/CloudPreview";
 import { PlatformDownloads } from "@/components/PlatformDownloads";
@@ -10,11 +11,17 @@ import { PRODUCTS } from "@/lib/products";
 
 const cloud = PRODUCTS.cloud;
 
+const SEO_TITLE = "depup.cloud — Dashboard Deploy ke Vercel, Cloudflare Pages & Railway";
+const SEO_DESCRIPTION =
+  "Dashboard deploy buatan Indonesia: tempel link GitHub, cek repo, lalu deploy ke Vercel, Cloudflare Pages, atau Railway dari satu tempat.";
+
 export const metadata: Metadata = {
-  title: "depup.cloud — Deploy & Konektor Claude dari Satu Dashboard",
-  description:
-    "depup.cloud: deploy ke Vercel, Cloudflare Pages, dan Railway dari satu dashboard, Link Instan untuk menayangkan website statis, dan konektor Claude (MCP).",
-  alternates: { canonical: "/cloud" },
+  title: { absolute: SEO_TITLE },
+  description: SEO_DESCRIPTION,
+  keywords: PRODUCT_KEYWORDS.cloud,
+  alternates: { canonical: "/cloud", languages: { "id-ID": "/cloud", "x-default": "/cloud" } },
+  openGraph: { title: SEO_TITLE, description: SEO_DESCRIPTION, url: "/cloud", locale: "id_ID", type: "website", siteName: "Depup Studio" },
+  twitter: { card: "summary_large_image", title: SEO_TITLE, description: SEO_DESCRIPTION },
 };
 
 const features = [
@@ -26,7 +33,8 @@ const features = [
 
 export default function CloudPage() {
   return (
-    <main className="min-h-screen bg-surface text-text-primary">
+    <main lang="id" className="min-h-screen bg-surface text-text-primary">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(productJsonLd("cloud", SEO_DESCRIPTION)) }} />
       <ScrollProgress />
       <ProductHeader cta={{ label: "Buka depup.cloud", href: cloud.site! }} />
 

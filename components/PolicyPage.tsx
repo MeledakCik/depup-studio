@@ -31,7 +31,7 @@ export function PolicyPage({
   englishSummary?: string;
 }) {
   return (
-    <main className="min-h-screen bg-surface text-text-primary">
+    <main lang="id" className="min-h-screen bg-surface text-text-primary">
       <ScrollProgress />
       <ProductHeader backHref={productHref} backLabel={product} links={<a href="/privacy" className="hidden text-sm text-text-secondary hover:text-text-primary md:inline">Pusat Privasi</a>} />
 

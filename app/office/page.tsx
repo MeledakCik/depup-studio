@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PRODUCT_KEYWORDS, jsonLdString, productJsonLd } from "@/lib/seo";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -19,11 +20,17 @@ import { ScrollScene } from "@/components/ScrollScene";
 
 const playStoreUrl = OFFICE_PLAY_URL;
 
+const SEO_TITLE = "depup Office — Aplikasi Scan Dokumen, PDF & Office Offline untuk Android";
+const SEO_DESCRIPTION =
+  "Aplikasi offline untuk Android: scan dokumen, edit PDF, buat dokumen, spreadsheet, dan presentasi tanpa internet. iOS, macOS & Windows segera hadir.";
+
 export const metadata: Metadata = {
-  title: "depup Office — Dokumen, Spreadsheet, Presentasi, dan PDF",
-  description:
-    "Kenali depup Office, aplikasi produktivitas offline untuk dokumen, spreadsheet, presentasi, PDF, dan scanner. Unduh untuk Android; iOS, macOS, dan Windows segera hadir.",
-  alternates: { canonical: "/office" },
+  title: { absolute: SEO_TITLE },
+  description: SEO_DESCRIPTION,
+  keywords: PRODUCT_KEYWORDS.office,
+  alternates: { canonical: "/office", languages: { "id-ID": "/office", "x-default": "/office" } },
+  openGraph: { title: SEO_TITLE, description: SEO_DESCRIPTION, url: "/office", locale: "id_ID", type: "website", siteName: "Depup Studio" },
+  twitter: { card: "summary_large_image", title: SEO_TITLE, description: SEO_DESCRIPTION },
 };
 
 const capabilities = [
@@ -51,7 +58,8 @@ const capabilities = [
 
 export default function OfficePage() {
   return (
-    <main className="min-h-screen bg-surface text-text-primary">
+    <main lang="id" className="min-h-screen bg-surface text-text-primary">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(productJsonLd("office", SEO_DESCRIPTION)) }} />
       <ScrollProgress />
       <ProductHeader cta={{ label: "Unduh aplikasi", href: "#unduh" }} />
 

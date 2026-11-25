@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PRODUCT_KEYWORDS, jsonLdString, productJsonLd } from "@/lib/seo";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -19,11 +20,17 @@ import { ScrollScene } from "@/components/ScrollScene";
 
 const sentinelUrl = "https://sentinel-id.net";
 
+const SEO_TITLE = "Sentinel-ID — Audit Keamanan Website Pasif untuk Domain Anda";
+const SEO_DESCRIPTION =
+  "Cek keamanan website Anda secara pasif: header, TLS, DNS, file sensitif, SEO, dan performa. Hanya GET/HEAD, maks. 100 request, tanpa eksploit.";
+
 export const metadata: Metadata = {
-  title: "Sentinel-ID — Audit Keamanan Website Pasif",
-  description:
-    "Kenali Sentinel-ID, auditor keamanan website pasif untuk pemilik domain. GET-only, same-origin, tanpa payload atau exploit.",
-  alternates: { canonical: "/sentinel" },
+  title: { absolute: SEO_TITLE },
+  description: SEO_DESCRIPTION,
+  keywords: PRODUCT_KEYWORDS.sentinel,
+  alternates: { canonical: "/sentinel", languages: { "id-ID": "/sentinel", "x-default": "/sentinel" } },
+  openGraph: { title: SEO_TITLE, description: SEO_DESCRIPTION, url: "/sentinel", locale: "id_ID", type: "website", siteName: "Depup Studio" },
+  twitter: { card: "summary_large_image", title: SEO_TITLE, description: SEO_DESCRIPTION },
 };
 
 const principles = [
@@ -51,7 +58,8 @@ const principles = [
 
 export default function SentinelPage() {
   return (
-    <main className="min-h-screen bg-surface text-text-primary">
+    <main lang="id" className="min-h-screen bg-surface text-text-primary">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(productJsonLd("sentinel", SEO_DESCRIPTION)) }} />
       <ScrollProgress />
       <ProductHeader
         cta={{ label: "Buka Sentinel-ID", href: sentinelUrl }}

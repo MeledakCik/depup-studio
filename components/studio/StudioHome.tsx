@@ -35,6 +35,7 @@ import {
   type Principle,
 } from "@/components/obsidian/data";
 import { STUDIO } from "@/lib/products";
+import { FAQ } from "@/lib/faq";
 import "./studio.css";
 
 const CONTACT = `mailto:${STUDIO.email}`;
@@ -795,16 +796,19 @@ function Spotlight() {
     <section id="spotlight" className={`relative pb-20 pt-32 md:pb-28 md:pt-40 ${ready ? "st-ready" : ""}`}>
       <HeroAurora />
       <div ref={copyRef} className={`${wrap} relative z-10 text-center will-change-transform`}>
-        <p className={`${eyebrow} text-[#0057C3]`}>
-          <Words text={`Independent systems studio · ${STUDIO.city.split(",")[0]}`} step={40} />
-        </p>
-        <h1 className="mx-auto mt-6 max-w-[1000px] font-display text-[clamp(52px,9vw,128px)] font-semibold leading-[0.98] tracking-[-0.045em]">
-          <Words text="One studio." start={150} />
-          <br />
-          <span className="text-[#0057C3]"><Words text="Made to move." start={400} wordClass="st-shimmer" /></span>
+        <h1>
+          <span className={`${eyebrow} block text-[#0057C3]`}>
+            <Words text={`Depup Studio · Independent software studio · ${STUDIO.city}`} step={40} />
+          </span>
+          <span className="mx-auto mt-6 block max-w-[1000px] font-display text-[clamp(52px,9vw,128px)] font-semibold leading-[0.98] tracking-[-0.045em]">
+            <Words text="One studio." start={150} />
+            <br />
+            <span className="text-[#0057C3]"><Words text="Made to move." start={400} wordClass="st-shimmer" /></span>
+          </span>
         </h1>
-        <p className="st-rise mx-auto mt-8 max-w-[620px] text-[19px] leading-[1.55] text-[#2E3A50] md:text-[21px]" style={EASE_DELAY(750)}>
-          Software, infrastructure, and useful tools designed around the way people get things done.
+        <p className="st-rise mx-auto mt-8 max-w-[660px] text-[19px] leading-[1.55] text-[#2E3A50] md:text-[21px]" style={EASE_DELAY(750)}>
+          We build and run depup.cloud, depup Office and Sentinel-ID — software, infrastructure, and useful tools designed around
+          the way people get things done.
         </p>
         <div className="st-rise mt-10 flex flex-wrap justify-center gap-3" style={EASE_DELAY(880)}>
           <a
@@ -2115,6 +2119,57 @@ function FieldNotes() {
   );
 }
 
+/* ---------- FAQ (also published as FAQPage structured data) ---------- */
+
+
+function Faq() {
+  const [open, setOpen] = useState(0);
+  return (
+    <section id="faq" aria-labelledby="faq-title" className="scroll-mt-14 border-t border-black/[0.07] py-24 md:py-32">
+      <div className={`${wrap} grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.3fr)]`}>
+        <div>
+          <p className={`${eyebrow} st-reveal mb-5 text-[#0057C3]`}>FAQ</p>
+          <h2 id="faq-title" className={`${h2} st-reveal`} style={EASE_DELAY(80)}>
+            Questions,
+            <br />
+            answered.
+          </h2>
+        </div>
+        <div className="st-reveal border-t border-black/10" style={EASE_DELAY(120)}>
+          {FAQ.map((f, i) => {
+            const on = open === i;
+            return (
+              <div key={f.q} className="border-b border-black/10">
+                <h3>
+                  <button
+                    type="button"
+                    aria-expanded={on}
+                    aria-controls={`faq-${i}`}
+                    onClick={() => setOpen(on ? -1 : i)}
+                    className="flex w-full items-center justify-between gap-6 py-6 text-left font-display text-[20px] font-semibold tracking-[-0.015em] md:text-[22px]"
+                  >
+                    {f.q}
+                    <span
+                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/15 transition-transform duration-500 ${on ? "rotate-45 border-transparent bg-[#0057C3] text-white" : ""}`}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </span>
+                  </button>
+                </h3>
+                <div id={`faq-${i}`} className={`st-acc ${on ? "is-open" : ""}`}>
+                  <div>
+                    <p className="max-w-[640px] pb-7 text-[16px] leading-[1.65] text-[#2E3A50]">{f.a}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------- mission ---------- */
 
 function Mission() {
@@ -2248,6 +2303,7 @@ export function StudioHome() {
         <Engineering />
         <Updates />
         <FieldNotes />
+        <Faq />
         <Mission />
       </main>
       <StudioFooter />
