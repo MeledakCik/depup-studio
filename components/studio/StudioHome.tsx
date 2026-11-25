@@ -67,7 +67,20 @@ const SYSTEM_FACTS: Record<string, Partial<(typeof ALL_SYSTEMS)[number]>> = {
 const SYSTEMS = ALL_SYSTEMS.filter((s) => RELEASED.includes(s.id)).map((s) => ({ ...s, ...SYSTEM_FACTS[s.id] }));
 const CATEGORIES = ALL_CATEGORIES.filter((c) => c.id === "all" || SYSTEMS.some((s) => s.category === c.id));
 // The Office "brings document work to Windows" note is left out: the Windows build is not released yet.
-const UPDATES = ALL_UPDATES.filter((u) => RELEASED.includes(u.systemId) && !/windows/i.test(u.title));
+type Update = (typeof ALL_UPDATES)[number];
+const OFFICE_RELEASE: Update = {
+    num: "03",
+    area: "Android",
+    month: "November",
+    title: "depup Office 4.4.2 for Android",
+    body: "Protected documents you can share, encrypted with AES-256-GCM, plus PDF, photo, Excel and Word tools — available as an APK release.",
+    accent: "titanium",
+    systemId: "office",
+};
+const UPDATES: (Update & { image: string })[] = [
+  ...ALL_UPDATES.filter((u) => RELEASED.includes(u.systemId) && !/windows/i.test(u.title)),
+  OFFICE_RELEASE,
+].map((u) => ({ ...u, image: `/updates/${u.systemId}.webp` }));
 const NOTE_FACTS: Record<string, { more: string }> = {
   office: { more: "Capture happens on the device, so a scan works on a plane or in a basement, with no account and no upload." },
 };
@@ -1900,14 +1913,26 @@ function Updates() {
                 key={u.num}
                 className="group flex w-full shrink-0 snap-start flex-col overflow-hidden rounded-[24px] border border-black/[0.07] bg-white transition-[border-color,transform] duration-500 hover:border-[#0057C3]/30 sm:w-[calc((100%-20px)/2)] lg:w-[calc((100%-40px)/3)]"
               >
-                <div className="relative h-[190px] overflow-hidden bg-[#061634] text-[#F3F6FC]">
+                <div className="relative h-[200px] overflow-hidden bg-[#061634] text-[#F3F6FC]">
+                  {u.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={u.image}
+                      alt={`${u.title} preview`}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-[1200ms] group-hover:scale-[1.06]"
+                      style={{ transitionTimingFunction: "cubic-bezier(.22,1,.36,1)" }}
+                    />
+                  )}
                   <div
                     aria-hidden
-                    className="absolute inset-0 transition-transform duration-[1200ms] group-hover:scale-110"
-                    style={{ background: `radial-gradient(80% 90% at 80% 20%, ${color}55, transparent 65%)`, transitionTimingFunction: "cubic-bezier(.22,1,.36,1)" }}
+                    className="absolute inset-0"
+                    style={{ background: `linear-gradient(to top, rgba(6,22,52,0.92) 0%, rgba(6,22,52,0.35) 45%, rgba(6,22,52,0) 75%), radial-gradient(80% 90% at 80% 20%, ${color}33, transparent 65%)` }}
                   />
-                  <span className="absolute bottom-5 left-6 font-display text-[60px] font-semibold leading-none tracking-[-0.04em]">{u.num}</span>
-                  <span className="absolute right-6 top-5 font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#C9D5EC]">{u.area}</span>
+                  <span className="absolute bottom-4 left-6 font-display text-[52px] font-semibold leading-none tracking-[-0.04em] drop-shadow-[0_4px_18px_rgba(0,0,0,0.45)]">{u.num}</span>
+                  <span className="absolute right-4 top-4 rounded-full bg-[#061634]/70 px-3 py-1 font-obs-mono text-[11px] uppercase tracking-[0.1em] text-[#E3EBFA] backdrop-blur-md">
+                    {u.area}
+                  </span>
                 </div>
                 <div className="flex flex-1 flex-col gap-3 p-6">
                   <span className="text-[13px] text-[#4F5B70]">{u.month} 2026 · Release note</span>
