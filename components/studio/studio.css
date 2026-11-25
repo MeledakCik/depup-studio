@@ -1,0 +1,164 @@
+/* Depup Studio homepage motion. One easing curve everywhere so movement feels like one system. */
+html:has(.st-root) {
+  scroll-behavior: smooth;
+}
+
+.st-root {
+  --st-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Scroll reveal: rise, unblur, fade. */
+.st-reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  filter: blur(6px);
+  transition:
+    opacity 0.9s var(--st-ease),
+    transform 0.9s var(--st-ease),
+    filter 0.9s var(--st-ease);
+  transition-delay: var(--d, 0ms);
+}
+.st-reveal.is-in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Headline words rise one after another. */
+.st-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 0.45em, 0);
+  transition:
+    opacity 1s var(--st-ease),
+    transform 1s var(--st-ease);
+  transition-delay: var(--d, 0ms);
+}
+.st-rise {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 1s var(--st-ease),
+    transform 1s var(--st-ease);
+  transition-delay: var(--d, 0ms);
+}
+.st-ready .st-rise,
+.st-ready .st-word {
+  opacity: 1;
+  transform: none;
+}
+
+/* Content swaps (stories, filters, principles). */
+.st-swap {
+  animation: st-swap 0.75s var(--st-ease) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes st-swap {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.st-glow {
+  transition: background 1.2s var(--st-ease);
+}
+
+/* Story progress bar. */
+.st-progress {
+  transform-origin: left center;
+  animation: st-progress var(--dur, 6000ms) linear forwards;
+}
+.st-paused .st-progress {
+  animation-play-state: paused;
+}
+@keyframes st-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Cards that lift toward the pointer. */
+.st-lift {
+  transition:
+    transform 0.55s var(--st-ease),
+    box-shadow 0.55s var(--st-ease),
+    border-color 0.3s ease;
+}
+@media (hover: hover) {
+  .st-lift:hover {
+    transform: translate3d(0, -6px, 0);
+    box-shadow: 0 30px 60px -30px rgba(11, 11, 12, 0.28);
+  }
+}
+
+/* Sliding filter indicator. */
+.st-indicator {
+  transition:
+    transform 0.55s var(--st-ease),
+    width 0.55s var(--st-ease);
+}
+
+/* Accordion that animates its real height. */
+.st-acc {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s var(--st-ease);
+}
+.st-acc.is-open {
+  grid-template-rows: 1fr;
+}
+.st-acc > div {
+  overflow: hidden;
+}
+
+.st-track {
+  padding-inline: 24px;
+  scroll-padding-inline: 24px;
+}
+@media (min-width: 768px) {
+  .st-track {
+    padding-inline: max(40px, calc((100vw - 1240px) / 2 + 40px));
+    scroll-padding-inline: max(40px, calc((100vw - 1240px) / 2 + 40px));
+  }
+}
+
+.st-snap {
+  scrollbar-width: none;
+}
+.st-snap::-webkit-scrollbar {
+  display: none;
+}
+
+.st-arrow {
+  transition: transform 0.45s var(--st-ease);
+}
+.group:hover .st-arrow {
+  transform: translate3d(4px, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.st-root) {
+    scroll-behavior: auto;
+  }
+  .st-reveal,
+  .st-rise,
+  .st-word {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  .st-swap,
+  .st-progress {
+    animation: none !important;
+  }
+  .st-lift:hover {
+    transform: none;
+  }
+}
