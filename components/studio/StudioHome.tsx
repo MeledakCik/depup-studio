@@ -853,21 +853,34 @@ function Constellation() {
     const blobs = NEBULA.map((b) => ({ ...b, img: makeBlob(b.c) }));
 
     // Click effects: shockwaves that push stars, spark bursts and a black-hole flare.
-    const waves: { x: number; y: number; t: number; power: number; color: string }[] = [];
+    type Puff = { a: number; d: number; s: number; o: number; c: number };
+    const waves: { x: number; y: number; t: number; power: number; color: string; puffs: Puff[] }[] = [];
+    const clickImgs = ["160,225,255", "90,150,255", "170,140,255"].map(makeBlob);
+    const WAVE_MS = 1500;
+    let clickR = 170;
+    const waveRadius = (age: number, power: number) => clickR * power * (1 - Math.pow(1 - Math.min(1, age / WAVE_MS), 3));
+    const makePuffs = (count: number): Puff[] =>
+      Array.from({ length: count }, () => ({
+        a: Math.random() * Math.PI * 2,
+        d: 0.25 + Math.random() * 0.75,
+        s: 0.5 + Math.random() * 0.7,
+        o: 0.5 + Math.random() * 0.5,
+        c: Math.floor(Math.random() * 3),
+      }));
     let sparks: { x: number; y: number; vx: number; vy: number; life: number; color: string }[] = [];
     let flare = 0;
     fx.current.wave = (x, y, power = 1, color = HOLO) => {
-      waves.push({ x, y, t: time, power, color });
+      waves.push({ x, y, t: time, power, color, puffs: makePuffs(9) });
       if (waves.length > 5) waves.shift();
-      const count = Math.round(28 * power);
+      const count = Math.round(18 * power);
       for (let k = 0; k < count; k++) {
         const a = Math.random() * Math.PI * 2;
-        const v = (0.06 + Math.random() * 0.3) * power;
+        const v = (0.03 + Math.random() * 0.13) * power;
         sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, color: Math.random() < 0.45 ? "#FFFFFF" : color });
       }
       if (Math.hypot(x - W / 2, y - CY) < BH * 2.4) {
         flare = 1;
-        waves.push({ x: W / 2, y: CY, t: time + 120, power: 1.6, color: "#BFE6FF" });
+        waves.push({ x: W / 2, y: CY, t: time + 120, power: 1.3, color: "#BFE6FF", puffs: makePuffs(12) });
       }
     };
 
@@ -880,6 +893,7 @@ function Constellation() {
       R = small ? Math.min(W * 0.4, 165) : Math.min(W * 0.3, 400);
       G = small ? Math.max(W, H) * 0.55 : Math.max(W * 0.5, 620);
       BH = small ? 28 : 52;
+      clickR = small ? 110 : 170;
       DPR = Math.min(window.devicePixelRatio || 1, 1.75);
       canvas.width = Math.round(W * DPR);
       canvas.height = Math.round(H * DPR);
@@ -1089,8 +1103,8 @@ function Constellation() {
             const dx = sx - w.x;
             const dy = sy - w.y;
             const d = Math.hypot(dx, dy) || 1;
-            const band = Math.exp(-((d - age * 0.55) ** 2) / 2200);
-            const push = band * Math.max(0, 1 - age / 1700) * 28 * w.power;
+            const band = Math.exp(-((d - waveRadius(age, w.power)) ** 2) / 1600);
+            const push = band * Math.max(0, 1 - age / WAVE_MS) * 12 * w.power;
             sx += (dx / d) * push;
             sy += (dy / d) * push;
           }
@@ -1114,27 +1128,36 @@ function Constellation() {
         ctx.fillRect(cx - bh * 7, CY - bh * 7, bh * 14, bh * 14);
       }
 
-      // Shockwave rings lie in the galaxy plane, so they read as 3D ellipses.
+      // Click puffs: soft nebula clouds that bloom in the galaxy plane and fade.
       for (const w of waves) {
         const age = time - w.t;
-        const k = age / 1700;
+        const k = age / WAVE_MS;
         if (age < 0 || k >= 1) continue;
-        const r = age * 0.55;
-        const ry = r * Math.max(0.32, cosT);
-        ctx.shadowColor = w.color;
-        ctx.shadowBlur = 22;
-        ctx.globalAlpha = Math.min(1, (1 - k) ** 2 * 0.85 * w.power);
-        ctx.strokeStyle = w.color;
-        ctx.lineWidth = 1.5 + 8 * (1 - k);
+        const r = waveRadius(age, w.power);
+        const fade = Math.pow(1 - k, 1.5);
+        const flat = Math.max(0.4, cosT);
+        const core = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, Math.max(1, r * 0.9));
+        core.addColorStop(0, `rgba(235,248,255,${0.65 * fade})`);
+        core.addColorStop(0.4, `rgba(120,190,255,${0.2 * fade})`);
+        core.addColorStop(1, "rgba(80,120,255,0)");
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = core;
+        ctx.save();
+        ctx.translate(w.x, w.y);
+        ctx.scale(1, flat);
+        ctx.translate(-w.x, -w.y);
         ctx.beginPath();
-        ctx.ellipse(w.x, w.y, r, ry, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = Math.min(1, (1 - k) ** 3 * 0.9);
-        ctx.strokeStyle = "#FFFFFF";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.ellipse(w.x, w.y, r * 0.82, ry * 0.82, 0, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.arc(w.x, w.y, Math.max(1, r * 0.9), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        for (const pf of w.puffs) {
+          const dist = r * pf.d;
+          const px = w.x + Math.cos(pf.a + k * 0.6) * dist;
+          const py = w.y + Math.sin(pf.a + k * 0.6) * dist * flat;
+          const size = 30 + r * pf.s;
+          ctx.globalAlpha = Math.min(1, fade * 0.85 * pf.o * w.power);
+          ctx.drawImage(clickImgs[pf.c], px - size / 2, py - (size * flat) / 2, size, size * flat);
+        }
       }
       ctx.shadowBlur = 0;
       for (const sp of sparks) {
@@ -1230,7 +1253,7 @@ function Constellation() {
       if (Math.abs(target - cur) < 0.0005) cur = target;
       yawT += dt * 0.0002 * (1 - easeInOut(range(cur, 0.5, 0.78))) * (selectedRef.current === null ? 1 : 0.15);
       flare *= Math.exp(-dt / 520);
-      for (let k = waves.length - 1; k >= 0; k--) if (time - waves[k].t > 1800) waves.splice(k, 1);
+      for (let k = waves.length - 1; k >= 0; k--) if (time - waves[k].t > WAVE_MS + 200) waves.splice(k, 1);
       const drag = Math.pow(0.93, dt / 16);
       for (const sp of sparks) {
         sp.x += sp.vx * dt;
