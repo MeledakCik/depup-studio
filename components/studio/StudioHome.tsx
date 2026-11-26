@@ -127,6 +127,23 @@ const EASE_DELAY = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/**
+ * Phones, touch devices, low-core/low-memory devices and Save-Data get a lighter render:
+ * fewer particles, no canvas glow, 30 fps canvases and no pointer tracking. The look stays the same.
+ */
+const isLite = () => {
+  if (typeof window === "undefined") return false;
+  const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+  return (
+    window.matchMedia("(max-width: 767px), (pointer: coarse)").matches ||
+    (nav.hardwareConcurrency ?? 8) <= 4 ||
+    (nav.deviceMemory ?? 8) <= 4 ||
+    !!nav.connection?.saveData
+  );
+};
+/** Run `draw` at most every `minGap` ms while still advancing time every frame. */
+const FRAME_GAP_LITE = 1000 / 30;
+
 /** Internal links that pointed at the old system modal now land on the ecosystem grid. */
 const safeHref = (href?: string) => {
   if (!href) return "#ecosystem";
@@ -452,6 +469,8 @@ function HeroAurora() {
     let last = 0;
     let time = 0;
     const mouse = { x: 0, y: 0, tx: 0, ty: 0, px: -999, py: -999, tpx: -999, tpy: -999 };
+    const lite = isLite();
+    let sinceDraw = 0;
 
     const size = () => {
       W = host.clientWidth;
@@ -497,6 +516,7 @@ function HeroAurora() {
       const small = W < 640;
 
       CLOUD_LAYERS.forEach((L, li) => {
+        if (lite && li === 0) return; // farthest, faintest layer is skipped on phones
         const cw = (small ? W * 0.75 : W * 0.32) * L.scale;
         const ch = cw / 2;
         const span = W + cw * 1.2;
@@ -533,7 +553,11 @@ function HeroAurora() {
       mouse.py += (mouse.tpy - mouse.py) * ease2;
       if (blobsRef.current) blobsRef.current.style.transform = `translate3d(${mouse.x * -24}px, ${mouse.y * -18}px, 0)`;
       if (cursorRef.current) cursorRef.current.style.transform = `translate3d(${mouse.px - 260}px, ${mouse.py - 260}px, 0)`;
-      draw();
+      sinceDraw += dt;
+      if (!lite || sinceDraw >= FRAME_GAP_LITE - 2) {
+        sinceDraw = 0;
+        draw();
+      }
       if (running) raf = requestAnimationFrame(tick);
     };
 
@@ -565,7 +589,7 @@ function HeroAurora() {
     });
     io.observe(host);
     window.addEventListener("resize", size);
-    window.addEventListener("pointermove", onMove, { passive: true });
+    if (!lite) window.addEventListener("pointermove", onMove, { passive: true });
     return () => {
       running = false;
       cancelAnimationFrame(raf);
@@ -1020,7 +1044,7 @@ const seeded = (seed: number) => () => {
   return (seed - 1) / 2147483646;
 };
 
-function makeGalaxy(count: number, diskCount: number) {
+function makeGalaxy(count: number, diskCount: number, dustCount = 260) {
   const rnd = seeded(20261125);
   const arms = 3;
   const groups: Star[][] = STAR_COLORS.map(() => []);
@@ -1038,7 +1062,7 @@ function makeGalaxy(count: number, diskCount: number) {
     disk[Math.floor(rnd() * DISK_COLORS.length)].push({ r, a: rnd() * Math.PI * 2, y: gauss(rnd) * 0.04, size: 0.8 + rnd() * 1.2, tw: rnd() * Math.PI * 2 });
   }
   const dust: (Star & { c: number })[] = [];
-  for (let i = 0; i < 260; i++) {
+  for (let i = 0; i < dustCount; i++) {
     const t = Math.pow(rnd(), 0.85);
     const r = 0.12 + 0.85 * t;
     const arm = i % arms;
@@ -1115,7 +1139,8 @@ function Constellation() {
     let orbitScale = 1;
     const F = 900;
     let nodes: { a: number; r: number; ex: number; ey: number }[] = [];
-    let galaxy = makeGalaxy(2600, 0);
+    const lite = isLite();
+    let galaxy = lite ? makeGalaxy(700, 0, 70) : makeGalaxy(2600, 0);
     const dustImgs = ["120,200,255", "60,120,255", "150,110,255"].map(makeBlob);
     const blobs = NEBULA.map((b) => ({ ...b, img: makeBlob(b.c) }));
 
@@ -1136,6 +1161,11 @@ function Constellation() {
       }));
     let sparks: { x: number; y: number; vx: number; vy: number; life: number; color: string }[] = [];
     let flare = 0;
+    let sinceDraw = 0;
+    let bhCache: HTMLCanvasElement | null = null;
+    let bhDrawnAt = -1e9;
+    let bhR = 0;
+    let bhA = 0;
     fx.current.wave = (x, y, power = 1, color = HOLO) => {
       waves.push({ x, y, t: time, power, color, puffs: makePuffs(9) });
       if (waves.length > 5) waves.shift();
@@ -1161,12 +1191,12 @@ function Constellation() {
       G = small ? Math.max(W, H) * 0.55 : Math.max(W * 0.5, 620);
       BH = small ? 28 : 52;
       clickR = small ? 110 : 170;
-      DPR = Math.min(window.devicePixelRatio || 1, 1.75);
+      DPR = lite ? 1 : Math.min(window.devicePixelRatio || 1, 1.75);
       canvas.width = Math.round(W * DPR);
       canvas.height = Math.round(H * DPR);
       canvas.style.width = `${W}px`;
       canvas.style.height = `${H}px`;
-      if (small && galaxy.groups.flat().length > 1500) galaxy = makeGalaxy(1300, 0);
+      if (small && !lite && galaxy.groups.flat().length > 1500) galaxy = makeGalaxy(1300, 0);
       const tile = small ? 60 : 76;
       const gap = small ? 26 : 40;
       const cols = Math.min(n, small ? 3 : Math.min(6, Math.ceil(Math.sqrt(n * 1.8))));
@@ -1195,13 +1225,15 @@ function Constellation() {
     };
 
     // Accretion disk rings: random dash pattern per ring gives moving streaks.
-    const diskRings = Array.from({ length: 52 }, (_, k) => {
+    const RINGS = lite ? 24 : 52;
+    const diskRings = Array.from({ length: RINGS }, (_, k) => {
       const rnd = seeded(7 + k * 13);
-      return { u: k / 51, dash: 1.2 + rnd() * 2.2, gap: 0.02 + rnd() * 0.12, phase: rnd() * 1000 };
+      return { u: k / (RINGS - 1), dash: 1.2 + rnd() * 2.2, gap: 0.02 + rnd() * 0.12, phase: rnd() * 1000 };
     });
-    const haloRings = Array.from({ length: 22 }, (_, k) => {
+    const HALO = lite ? 10 : 22;
+    const haloRings = Array.from({ length: HALO }, (_, k) => {
       const rnd = seeded(101 + k * 7);
-      return { u: k / 21, dash: 1.4 + rnd() * 2.4, gap: 0.02 + rnd() * 0.1, phase: rnd() * 1000 };
+      return { u: k / (HALO - 1), dash: 1.4 + rnd() * 2.4, gap: 0.02 + rnd() * 0.1, phase: rnd() * 1000 };
     });
     const tone = (u: number) => {
       // white-hot inside, Depup blue and violet toward the edge
@@ -1220,37 +1252,37 @@ function Constellation() {
       return [A[0] + (B[0] - A[0]) * f, A[1] + (B[1] - A[1]) * f, A[2] + (B[2] - A[2]) * f].map(Math.round).join(",");
     };
 
-    const drawBlackHole = (x: number, y: number, bh: number, alpha: number) => {
+    const drawBlackHole = (x: number, y: number, bh: number, alpha: number, c: CanvasRenderingContext2D = ctx) => {
       const INNER = 1.5;
       const OUTER = 5.8;
       const FLAT = 0.13;
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(-0.09);
-      ctx.globalCompositeOperation = "lighter";
+      c.save();
+      c.translate(x, y);
+      c.rotate(-0.09);
+      c.globalCompositeOperation = "lighter";
 
-      const glow = ctx.createRadialGradient(0, 0, bh * 0.95, 0, 0, bh * 6.5);
+      const glow = c.createRadialGradient(0, 0, bh * 0.95, 0, 0, bh * 6.5);
       glow.addColorStop(0, "rgba(220,240,255,0.22)");
       glow.addColorStop(0.25, "rgba(110,160,255,0.16)");
       glow.addColorStop(1, "rgba(60,80,255,0)");
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = glow;
-      ctx.fillRect(-bh * 6.5, -bh * 6.5, bh * 13, bh * 13);
+      c.globalAlpha = alpha;
+      c.fillStyle = glow;
+      c.fillRect(-bh * 6.5, -bh * 6.5, bh * 13, bh * 13);
 
       const strokeRing = (r: number, ry: number, from: number, to: number, u: number, a: number, seed: { dash: number; gap: number; phase: number }, width: number) => {
         const col = tone(u);
         // Doppler beaming: the side moving toward us (left) is brighter.
-        const g = ctx.createLinearGradient(-r, 0, r, 0);
+        const g = c.createLinearGradient(-r, 0, r, 0);
         g.addColorStop(0, `rgba(${col},${Math.min(1, a * 1.4)})`);
         g.addColorStop(0.5, `rgba(${col},${a})`);
         g.addColorStop(1, `rgba(${col},${a * 0.35})`);
-        ctx.strokeStyle = g;
-        ctx.lineWidth = width;
-        ctx.setLineDash([r * seed.dash, r * seed.gap]);
-        ctx.lineDashOffset = -(time * 0.05 * Math.sqrt((bh * 2) / r) + seed.phase);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, r, ry, 0, from, to);
-        ctx.stroke();
+        c.strokeStyle = g;
+        c.lineWidth = width;
+        c.setLineDash([r * seed.dash, r * seed.gap]);
+        c.lineDashOffset = -(time * 0.05 * Math.sqrt((bh * 2) / r) + seed.phase);
+        c.beginPath();
+        c.ellipse(0, 0, r, ry, 0, from, to);
+        c.stroke();
       };
 
       const step = ((OUTER - INNER) * bh) / diskRings.length;
@@ -1271,50 +1303,59 @@ function Constellation() {
         strokeRing(r, r * 0.98, Math.PI - 0.28, Math.PI * 2 + 0.28, ring.u * 0.8, a, ring, Math.max(1.2, bh * 0.075));
       }
       // soft glow behind the lensed arc
-      const arcGlow = ctx.createRadialGradient(0, 0, bh * 1.02, 0, 0, bh * 1.9);
+      const arcGlow = c.createRadialGradient(0, 0, bh * 1.02, 0, 0, bh * 1.9);
       arcGlow.addColorStop(0, "rgba(225,242,255,0.5)");
       arcGlow.addColorStop(1, "rgba(120,170,255,0)");
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = arcGlow;
-      ctx.beginPath();
-      ctx.arc(0, 0, bh * 1.9, Math.PI, Math.PI * 2);
-      ctx.fill();
+      c.globalAlpha = alpha;
+      c.fillStyle = arcGlow;
+      c.beginPath();
+      c.arc(0, 0, bh * 1.9, Math.PI, Math.PI * 2);
+      c.fill();
       // 3. fainter secondary image under the bottom
       for (let k = 0; k < 6; k++) {
         const r = bh * (1.05 + 0.05 * k);
         strokeRing(r, r * 0.97, 0.15, Math.PI - 0.15, 0.1 + k * 0.08, alpha * (0.28 - k * 0.04), haloRings[k], bh * 0.05);
       }
-      ctx.setLineDash([]);
+      c.setLineDash([]);
 
       // 4. the shadow itself
-      ctx.globalCompositeOperation = "source-over";
-      const shade = ctx.createRadialGradient(0, 0, bh * 0.7, 0, 0, bh * 1.02);
+      c.globalCompositeOperation = "source-over";
+      const shade = c.createRadialGradient(0, 0, bh * 0.7, 0, 0, bh * 1.02);
       shade.addColorStop(0, "rgba(0,0,0,1)");
       shade.addColorStop(0.92, "rgba(0,0,0,1)");
       shade.addColorStop(1, "rgba(0,0,0,0.6)");
-      ctx.globalAlpha = Math.min(1, alpha * 1.2);
-      ctx.fillStyle = shade;
-      ctx.beginPath();
-      ctx.arc(0, 0, bh * 1.02, 0, Math.PI * 2);
-      ctx.fill();
+      c.globalAlpha = Math.min(1, alpha * 1.2);
+      c.fillStyle = shade;
+      c.beginPath();
+      c.arc(0, 0, bh * 1.02, 0, Math.PI * 2);
+      c.fill();
 
       // 5. photon ring hugging the shadow
-      ctx.globalCompositeOperation = "lighter";
-      ctx.globalAlpha = alpha;
-      ctx.shadowColor = "rgba(190,230,255,0.9)";
-      ctx.shadowBlur = bh * 0.35;
-      ctx.strokeStyle = "rgba(240,250,255,0.95)";
-      ctx.lineWidth = Math.max(1, bh * 0.035);
-      ctx.beginPath();
-      ctx.arc(0, 0, bh * 1.03, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      c.globalCompositeOperation = "lighter";
+      c.globalAlpha = alpha;
+      if (lite) {
+        // cheap glow: a wide faint stroke instead of shadowBlur
+        c.strokeStyle = "rgba(190,230,255,0.25)";
+        c.lineWidth = bh * 0.18;
+        c.beginPath();
+        c.arc(0, 0, bh * 1.03, 0, Math.PI * 2);
+        c.stroke();
+      } else {
+        c.shadowColor = "rgba(190,230,255,0.9)";
+        c.shadowBlur = bh * 0.35;
+      }
+      c.strokeStyle = "rgba(240,250,255,0.95)";
+      c.lineWidth = Math.max(1, bh * 0.035);
+      c.beginPath();
+      c.arc(0, 0, bh * 1.03, 0, Math.PI * 2);
+      c.stroke();
+      c.shadowBlur = 0;
 
       // 6. near side of the disk, crossing in front of the hole
       disk(true);
-      ctx.setLineDash([]);
-      ctx.restore();
-      ctx.globalCompositeOperation = "lighter";
+      c.setLineDash([]);
+      c.restore();
+      c.globalCompositeOperation = "lighter";
     };
 
     const drawGalaxy = (p: number, tilt: number, boot: number, gather: number, flash: number) => {
@@ -1330,7 +1371,7 @@ function Constellation() {
       ctx.globalCompositeOperation = "lighter";
 
       // Nebula clouds drift slowly.
-      blobs.forEach((b, i) => {
+      if (!lite) blobs.forEach((b, i) => {
         const dx = Math.sin(time * 0.00006 + i * 1.7) * 30;
         const dy = Math.cos(time * 0.00005 + i) * 20;
         const size = b.r * G * 1.6 * gScale;
@@ -1384,7 +1425,31 @@ function Constellation() {
 
       // Gargantua-style black hole: lensed disk around a dark shadow.
       const bh = BH * (1 - gather) * (0.55 + 0.45 * boot);
-      if (bh > 0.5) drawBlackHole(cx, CY, bh * (1 + 0.1 * flare), boot * (1 - 0.4 * gather));
+      if (bh > 0.5) {
+        const r = bh * (1 + 0.1 * flare);
+        const a = boot * (1 - 0.4 * gather);
+        if (lite) {
+          // Phones: render the black hole into a cached sprite ~10x/s and blit it every frame.
+          const size = Math.ceil(r * 13);
+          if (!bhCache || bhCache.width < size || time - bhDrawnAt > 100 || Math.abs(bhR - r) > 0.5 || Math.abs(bhA - a) > 0.02) {
+            if (!bhCache || bhCache.width < size) {
+              bhCache = document.createElement("canvas");
+              bhCache.width = bhCache.height = size;
+            }
+            const bc = bhCache.getContext("2d")!;
+            bc.setTransform(1, 0, 0, 1, 0, 0);
+            bc.clearRect(0, 0, bhCache.width, bhCache.height);
+            drawBlackHole(bhCache.width / 2, bhCache.height / 2, r, a, bc);
+            bhDrawnAt = time;
+            bhR = r;
+            bhA = a;
+          }
+          ctx.globalAlpha = 1;
+          ctx.drawImage(bhCache, cx - bhCache.width / 2, CY - bhCache.height / 2);
+        } else {
+          drawBlackHole(cx, CY, r, a);
+        }
+      }
       if (flare > 0.01 && bh > 0.5) {
         const fg = ctx.createRadialGradient(cx, CY, bh, cx, CY, bh * 7);
         fg.addColorStop(0, `rgba(230,245,255,${0.55 * flare})`);
@@ -1530,7 +1595,11 @@ function Constellation() {
         sp.life -= dt / 950;
       }
       sparks = sparks.filter((sp) => sp.life > 0);
-      render();
+      sinceDraw += dt;
+      if (!lite || sinceDraw >= FRAME_GAP_LITE - 2) {
+        sinceDraw = 0;
+        render();
+      }
       if (running) raf = requestAnimationFrame(tick);
     };
 
@@ -1578,6 +1647,7 @@ function Constellation() {
         }}
         className="sticky top-0 h-[100svh] cursor-crosshair select-none overflow-hidden"
       >
+        <div aria-hidden className="st-nebula pointer-events-none absolute inset-0" />
         <canvas ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-0" />
         <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(2,6,15,0.85) 100%)" }} />
 
@@ -1860,7 +1930,7 @@ function Engineering() {
   const links = p.links.filter((l) => !l.href.includes("github.com"));
 
   return (
-    <section id="engineering" className="scroll-mt-14 bg-[#061634] py-24 text-[#F3F6FC] md:py-36">
+    <section id="engineering" className="st-cv scroll-mt-14 bg-[#061634] py-24 text-[#F3F6FC] md:py-36">
       <div className={wrap}>
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
@@ -1982,7 +2052,7 @@ function Updates() {
     "grid h-11 w-11 place-items-center rounded-full border border-black/15 transition-all duration-300 hover:border-[#0057C3] hover:text-[#0057C3] disabled:pointer-events-none disabled:opacity-30";
 
   return (
-    <section id="updates" className="scroll-mt-14 py-24 md:py-36">
+    <section id="updates" className="st-cv scroll-mt-14 py-24 md:py-36">
       <div className={wrap}>
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
@@ -2065,7 +2135,7 @@ function Updates() {
 function FieldNotes() {
   const [open, setOpen] = useState(0);
   return (
-    <section id="notes" className="scroll-mt-14 border-t border-black/[0.07] py-24 md:py-36">
+    <section id="notes" className="st-cv scroll-mt-14 border-t border-black/[0.07] py-24 md:py-36">
       <div className={`${wrap} grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.3fr)]`}>
         <div>
           <p className={`${eyebrow} st-reveal mb-5 text-[#0057C3]`}>Notes from the studio</p>
@@ -2125,7 +2195,7 @@ function FieldNotes() {
 function Faq() {
   const [open, setOpen] = useState(0);
   return (
-    <section id="faq" aria-labelledby="faq-title" className="scroll-mt-14 border-t border-black/[0.07] py-24 md:py-32">
+    <section id="faq" aria-labelledby="faq-title" className="st-cv scroll-mt-14 border-t border-black/[0.07] py-24 md:py-32">
       <div className={`${wrap} grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.3fr)]`}>
         <div>
           <p className={`${eyebrow} st-reveal mb-5 text-[#0057C3]`}>FAQ</p>

@@ -273,6 +273,39 @@ html:has(.st-root) {
   transform: translate3d(4px, 0, 0);
 }
 
+/* Static nebula used instead of the canvas clouds on phones (see isLite in StudioHome). */
+.st-nebula {
+  display: none;
+  background:
+    radial-gradient(45% 30% at 22% 52%, rgba(31, 111, 235, 0.38), transparent 70%),
+    radial-gradient(40% 28% at 80% 60%, rgba(124, 77, 255, 0.32), transparent 70%),
+    radial-gradient(35% 22% at 52% 68%, rgba(92, 225, 255, 0.26), transparent 70%),
+    radial-gradient(60% 35% at 45% 35%, rgba(11, 58, 140, 0.45), transparent 75%),
+    radial-gradient(30% 20% at 15% 72%, rgba(160, 120, 255, 0.22), transparent 70%);
+}
+
+/* Phones and touch screens: keep the look, drop the expensive parts.
+   - reveals/swaps fade and rise without animating a blur filter
+   - background blobs and the headline shimmer hold still
+   - frosted glass becomes solid, since backdrop-filter re-renders while scrolling */
+@media (max-width: 767px), (pointer: coarse) {
+  .st-reveal { filter: none; transition: opacity 0.7s var(--st-ease), transform 0.7s var(--st-ease); }
+  .st-reveal.is-in { filter: none; }
+  @keyframes st-swap {
+    from { opacity: 0; transform: translate3d(0, 12px, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  .st-blob { animation: none; }
+  .st-shimmer { animation: none; background-position-x: 30%; }
+  .st-spark { animation-duration: 9s; }
+  .st-root .backdrop-blur-xl,
+  .st-root .backdrop-blur-md { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .st-root header.backdrop-blur-xl { background-color: rgba(246, 248, 252, 0.97); }
+  .st-orb { box-shadow: none; }
+  .st-cv { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+  .st-nebula { display: block; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html:has(.st-root) {
     scroll-behavior: auto;
