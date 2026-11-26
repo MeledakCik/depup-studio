@@ -194,15 +194,24 @@ function useReveal() {
       items.forEach((el) => el.classList.add("is-in"));
       return;
     }
+    const lite = isLite();
     const io = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
+          const el = e.target as HTMLElement;
+          // Already scrolled past (fast fling or anchor jump): show it at once instead of animating late.
+          if (!e.isIntersecting && e.boundingClientRect.bottom < 0) {
+            el.classList.add("is-in", "st-instant");
+            io.unobserve(el);
+            return;
+          }
           if (e.isIntersecting) {
-            e.target.classList.add("is-in");
-            io.unobserve(e.target);
+            el.classList.add("is-in");
+            io.unobserve(el);
           }
         }),
-      { rootMargin: "0px 0px -60px 0px", threshold: 0.1 }
+      // Phones start the reveal just before the element enters, so momentum scrolling never shows blanks.
+      lite ? { rootMargin: "0px 0px 12% 0px", threshold: 0 } : { rootMargin: "0px 0px -60px 0px", threshold: 0.1 }
     );
     items.forEach((el) => io.observe(el));
     return () => io.disconnect();
@@ -758,6 +767,7 @@ function Spotlight() {
     let running = false;
     let last = 0;
     let anchorTop = 0;
+    const lite = isLite();
     let vh = window.innerHeight;
     const cur = { p: 0, y: 0 };
     const measure = () => {
@@ -779,7 +789,7 @@ function Spotlight() {
       const dt = last ? Math.min(64, now - last) : 16;
       last = now;
       const t = target();
-      const k = 1 - Math.exp(-dt / 110);
+      const k = 1 - Math.exp(-dt / (lite ? 45 : 110));
       cur.p += (t.p - cur.p) * k;
       cur.y += (t.y - cur.y) * k;
       apply();
@@ -1581,7 +1591,7 @@ function Constellation() {
       time += dt;
       const target = targetProgress();
       // Damped follow keeps motion smooth even when the wheel jumps.
-      cur += (target - cur) * (1 - Math.exp(-dt / 150));
+      cur += (target - cur) * (1 - Math.exp(-dt / (lite ? 55 : 150)));
       if (Math.abs(target - cur) < 0.0005) cur = target;
       yawT += dt * 0.0002 * (1 - easeInOut(range(cur, 0.5, 0.78))) * (selectedRef.current === null ? 1 : 0.15);
       flare *= Math.exp(-dt / 520);
@@ -1930,7 +1940,7 @@ function Engineering() {
   const links = p.links.filter((l) => !l.href.includes("github.com"));
 
   return (
-    <section id="engineering" className="st-cv scroll-mt-14 bg-[#061634] py-24 text-[#F3F6FC] md:py-36">
+    <section id="engineering" className="scroll-mt-14 bg-[#061634] py-24 text-[#F3F6FC] md:py-36">
       <div className={wrap}>
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
@@ -2052,7 +2062,7 @@ function Updates() {
     "grid h-11 w-11 place-items-center rounded-full border border-black/15 transition-all duration-300 hover:border-[#0057C3] hover:text-[#0057C3] disabled:pointer-events-none disabled:opacity-30";
 
   return (
-    <section id="updates" className="st-cv scroll-mt-14 py-24 md:py-36">
+    <section id="updates" className="scroll-mt-14 py-24 md:py-36">
       <div className={wrap}>
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
@@ -2135,7 +2145,7 @@ function Updates() {
 function FieldNotes() {
   const [open, setOpen] = useState(0);
   return (
-    <section id="notes" className="st-cv scroll-mt-14 border-t border-black/[0.07] py-24 md:py-36">
+    <section id="notes" className="scroll-mt-14 border-t border-black/[0.07] py-24 md:py-36">
       <div className={`${wrap} grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.3fr)]`}>
         <div>
           <p className={`${eyebrow} st-reveal mb-5 text-[#0057C3]`}>Notes from the studio</p>
@@ -2195,7 +2205,7 @@ function FieldNotes() {
 function Faq() {
   const [open, setOpen] = useState(0);
   return (
-    <section id="faq" aria-labelledby="faq-title" className="st-cv scroll-mt-14 border-t border-black/[0.07] py-24 md:py-32">
+    <section id="faq" aria-labelledby="faq-title" className="scroll-mt-14 border-t border-black/[0.07] py-24 md:py-32">
       <div className={`${wrap} grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.3fr)]`}>
         <div>
           <p className={`${eyebrow} st-reveal mb-5 text-[#0057C3]`}>FAQ</p>

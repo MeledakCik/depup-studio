@@ -18,6 +18,9 @@ html:has(.st-root) {
     filter 0.9s var(--st-ease);
   transition-delay: var(--d, 0ms);
 }
+.st-reveal.st-instant {
+  transition: none !important;
+}
 .st-reveal.is-in {
   opacity: 1;
   transform: none;
@@ -289,7 +292,13 @@ html:has(.st-root) {
    - background blobs and the headline shimmer hold still
    - frosted glass becomes solid, since backdrop-filter re-renders while scrolling */
 @media (max-width: 767px), (pointer: coarse) {
-  .st-reveal { filter: none; transition: opacity 0.7s var(--st-ease), transform 0.7s var(--st-ease); }
+  /* Shorter, smaller and less staggered on phones so content keeps up with the finger. */
+  .st-reveal {
+    filter: none;
+    transform: translate3d(0, 14px, 0);
+    transition: opacity 0.5s var(--st-ease), transform 0.5s var(--st-ease);
+    transition-delay: calc(var(--d, 0ms) * 0.35);
+  }
   .st-reveal.is-in { filter: none; }
   @keyframes st-swap {
     from { opacity: 0; transform: translate3d(0, 12px, 0); }
@@ -302,7 +311,6 @@ html:has(.st-root) {
   .st-root .backdrop-blur-md { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .st-root header.backdrop-blur-xl { background-color: rgba(246, 248, 252, 0.97); }
   .st-orb { box-shadow: none; }
-  .st-cv { content-visibility: auto; contain-intrinsic-size: auto 900px; }
   .st-nebula { display: block; }
 }
 
