@@ -74,27 +74,6 @@ html:has(.st-root) {
 }
 
 /* Constellation ambience. */
-.st-float {
-  animation: st-float 6s ease-in-out infinite;
-}
-@keyframes st-float {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -8px, 0); }
-}
-.st-pulse {
-  animation: st-pulse 2.8s var(--st-ease) infinite;
-}
-@keyframes st-pulse {
-  from { transform: scale(1); opacity: 0.8; }
-  to { transform: scale(1.6); opacity: 0; }
-}
-.st-grid {
-  background-image:
-    linear-gradient(to right, #8ab4ff 1px, transparent 1px),
-    linear-gradient(to bottom, #8ab4ff 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(60% 60% at 50% 50%, #000, transparent 75%);
-}
 
 /* Glass orb over each app while it orbits the galaxy. */
 .st-orb {
@@ -205,17 +184,6 @@ html:has(.st-root) {
 }
 
 /* Story progress bar. */
-.st-progress {
-  transform-origin: left center;
-  animation: st-progress var(--dur, 6000ms) linear forwards;
-}
-.st-paused .st-progress {
-  animation-play-state: paused;
-}
-@keyframes st-progress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
 
 /* Cards that lift toward the pointer. */
 .st-lift {
@@ -249,17 +217,6 @@ html:has(.st-root) {
 }
 .st-acc > div {
   overflow: hidden;
-}
-
-.st-track {
-  padding-inline: 24px;
-  scroll-padding-inline: 24px;
-}
-@media (min-width: 768px) {
-  .st-track {
-    padding-inline: max(40px, calc((100vw - 1240px) / 2 + 40px));
-    scroll-padding-inline: max(40px, calc((100vw - 1240px) / 2 + 40px));
-  }
 }
 
 .st-snap {
@@ -327,9 +284,6 @@ html:has(.st-root) {
     transition: none !important;
   }
   .st-swap,
-  .st-progress,
-  .st-float,
-  .st-pulse,
   .st-blob,
   .st-spark,
   .st-shimmer {

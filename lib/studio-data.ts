@@ -454,13 +454,6 @@ export const NOTES = [
   },
 ];
 
-export const ACCENT_TEXT: Record<Accent, string> = {
-  sky: "text-obs-sky",
-  pink: "text-obs-pink",
-  green: "text-obs-green",
-  titanium: "text-obs-titanium",
-};
-
 export const ACCENT_HEX: Record<Accent, string> = {
   sky: "#abc7ff",
   pink: "#fab4c0",

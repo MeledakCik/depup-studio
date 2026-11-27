@@ -33,7 +33,7 @@ import {
   UPDATES as ALL_UPDATES,
   type Category,
   type Principle,
-} from "@/components/obsidian/data";
+} from "@/lib/studio-data";
 import { STUDIO } from "@/lib/products";
 import { FAQ } from "@/lib/faq";
 import "./studio.css";
@@ -45,7 +45,7 @@ const CONTACT = `mailto:${STUDIO.email}`;
  * - depup.cloud: live web app at depup.cloud (depup.web.id redirects there)
  * - Sentinel-ID: live web app at sentinel-id.net
  * - depup Office: Android APK published as GitHub release v4.4.2
- * Other systems stay in data.ts; add an id here once it has a public site, store listing or release.
+ * Other systems stay in lib/studio-data.ts; add an id here once it has a public site, store listing or release.
  */
 const RELEASED = ["cloud", "office", "sentinel"];
 /* Office ships on Android today (iOS, macOS and Windows are "soon" in lib/products.ts), so its copy says only that. */

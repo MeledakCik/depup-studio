@@ -1,24 +1,23 @@
 import type { Metadata, Viewport } from "next";
-const F=(v:string)=>(_o:unknown)=>({variable:v});const Inter=F("fi"),JetBrains_Mono=F("fj"),Plus_Jakarta_Sans=F("fp");
+import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-inter",
   display: "swap",
 });
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
   variable: "--font-jakarta",
   display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  // Only used for small labels; no need to preload it ahead of the body text.
+  preload: false,
   variable: "--font-jbmono",
   display: "swap",
 });
