@@ -4,7 +4,7 @@ import { STUDIO } from "@/lib/products";
 export const FAQ: { q: string; a: string }[] = [
   {
     q: "What is Depup Studio?",
-    a: `Depup Studio is an independent, founder-led software studio based in ${STUDIO.city}. We design, build and run our own products: Depup Cloud, Depup Office and Sentinel-ID.`,
+    a: `Depup Studio is an independent, founder-led software studio based in ${STUDIO.city}. We design, build and run our own products: Depup Cloud, Depup Office and Sentinel ID.`,
   },
   {
     q: "What is Depup Cloud?",
@@ -15,8 +15,8 @@ export const FAQ: { q: string; a: string }[] = [
     a: "Depup Office is an offline productivity app for Android: scan documents, work with PDF, and create documents, spreadsheets and presentations on your phone without an internet connection. iOS, macOS and Windows versions are on the way.",
   },
   {
-    q: "What is Sentinel-ID?",
-    a: "Sentinel-ID is a passive website security audit for domains you own. It checks security headers, TLS, DNS, exposed files, SEO and performance using only GET/HEAD requests, capped at 100 per scan, with no exploits.",
+    q: "What is Sentinel ID?",
+    a: "Sentinel ID is a passive website security audit for domains you own. It checks security headers, TLS, DNS, exposed files, SEO and performance using only GET/HEAD requests, capped at 100 per scan, with no exploits.",
   },
   {
     q: "How can I contact Depup Studio?",

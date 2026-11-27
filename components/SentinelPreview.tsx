@@ -137,7 +137,7 @@ export function SentinelPreview({ expanded = false, lang = "id" }: { expanded?: 
     <div className={`${expanded ? "mx-auto max-w-6xl rounded-[2rem] border border-slate-700 bg-[#111c32] p-4 shadow-[0_30px_90px_rgba(15,23,42,.2)] sm:p-6" : "rounded-[1.5rem] border border-slate-700 bg-[#111c32] p-3 shadow-[0_25px_70px_rgba(15,23,42,.25)] sm:p-4"}`}>
       <div className="flex items-center gap-3 border-b border-white/10 pb-3 sm:pb-4">
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-500/15 text-blue-300"><ShieldCheck className="h-5 w-5" /></span>
-        <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-white sm:text-sm">Sentinel-ID</p><p className="mt-0.5 text-[8px] uppercase tracking-[.14em] text-slate-400 sm:text-[9px]">Passive-only audit preview</p></div>
+        <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-white sm:text-sm">Sentinel ID</p><p className="mt-0.5 text-[8px] uppercase tracking-[.14em] text-slate-400 sm:text-[9px]">Passive-only audit preview</p></div>
         <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[8px] font-semibold text-amber-200 sm:text-[9px]">SAMPLE DATA</span>
       </div>
       <div className={`${expanded ? "grid gap-5 pt-4 md:grid-cols-[170px_minmax(0,1fr)] sm:pt-5" : "pt-3 sm:pt-4"}`}>

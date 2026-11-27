@@ -78,7 +78,7 @@ export const SYSTEMS: SystemItem[] = [
   {
     id: "sentinel",
     num: "03",
-    name: "Sentinel-ID",
+    name: "Sentinel ID",
     category: "security",
     badge: "Passive Auditing",
     description:
@@ -87,7 +87,7 @@ export const SYSTEMS: SystemItem[] = [
     tags: ["GET-only", "Same-origin", "Manual review"],
     accent: "pink",
     href: "/en/sentinel",
-    cta: "Explore Sentinel-ID",
+    cta: "Explore Sentinel ID",
     specs: [
       ["Method", "GET-only"],
       ["Scope", "Same-origin"],
@@ -95,7 +95,7 @@ export const SYSTEMS: SystemItem[] = [
       ["Review", "Manual, owner-led"],
     ],
     detail:
-      "A careful auditor for domains you own. Sentinel-ID never writes, never crawls off-origin and stops at a hard request ceiling, leaving every decision to the owner.",
+      "A careful auditor for domains you own. Sentinel ID never writes, never crawls off-origin and stops at a hard request ceiling, leaving every decision to the owner.",
   },
   {
     id: "motionku",
@@ -277,7 +277,7 @@ export const PRINCIPLES: Principle[] = [
     desc: "Passive, non-invasive zero-trust validation engines. Same-origin bounds, GET-only query architectures, and strict rate envelopes prioritizing system integrity.",
     linksHeading: "Audited deterministic perimeter",
     links: [
-      { label: "Sentinel-ID", href: "/en/sentinel" },
+      { label: "Sentinel ID", href: "/en/sentinel" },
       { label: "sentinel-id.net", href: "https://sentinel-id.net", external: true },
       { label: "Privacy policy", href: "/sentinel/privacy-policy" },
     ],
@@ -381,7 +381,7 @@ export const UPDATES: UpdateItem[] = [
     num: "02",
     area: "Security",
     month: "November",
-    title: "Sentinel-ID adds encrypted proof review",
+    title: "Sentinel ID adds encrypted proof review",
     body: "Automated cryptographic audit certificates verifying passive scan constraints without storing raw perimeter telemetry.",
     accent: "pink",
     systemId: "sentinel",

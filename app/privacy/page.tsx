@@ -5,7 +5,7 @@ import { PRODUCTS, STUDIO } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Pusat Privasi — Depup Studio",
-  description: "Kebijakan privasi semua produk Depup Studio: Depup Office, Sentinel-ID, dan Depup Cloud.",
+  description: "Kebijakan privasi semua produk Depup Studio: Depup Office, Sentinel ID, dan Depup Cloud.",
   alternates: { canonical: "/privacy" },
 };
 

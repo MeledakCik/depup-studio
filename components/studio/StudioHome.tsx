@@ -43,7 +43,7 @@ const CONTACT = `mailto:${STUDIO.email}`;
 /**
  * Only products the public can actually use today are shown on the homepage (checked 25 Nov 2026):
  * - depup.cloud: live web app at depup.cloud (depup.web.id redirects there)
- * - Sentinel-ID: live web app at sentinel-id.net
+ * - Sentinel ID: live web app at sentinel-id.net
  * - Depup Office: Android APK published as GitHub release v4.4.2
  * Other systems stay in lib/studio-data.ts; add an id here once it has a public site, store listing or release.
  */
@@ -841,7 +841,7 @@ function Spotlight() {
           </span>
         </h1>
         <p className="st-rise mx-auto mt-8 max-w-[660px] text-[19px] leading-[1.55] text-[#2E3A50] md:text-[21px]" style={EASE_DELAY(750)}>
-          We build and run Depup Cloud, Depup Office and Sentinel-ID — software, infrastructure, and useful tools designed around
+          We build and run Depup Cloud, Depup Office and Sentinel ID — software, infrastructure, and useful tools designed around
           the way people get things done.
         </p>
         <div className="st-rise mt-10 flex flex-wrap justify-center gap-3" style={EASE_DELAY(880)}>
@@ -2289,7 +2289,7 @@ const FOOTER: { title: string; links: { label: string; href: string }[] }[] = [
     links: [
       { label: "Depup Cloud", href: "/en/cloud" },
       { label: "Depup Office", href: "/en/office" },
-      { label: "Sentinel-ID", href: "/en/sentinel" },
+      { label: "Sentinel ID", href: "/en/sentinel" },
     ],
   },
   {

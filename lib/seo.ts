@@ -39,10 +39,11 @@ export const PRODUCT_SEO: Record<ProductId, Record<Lang, { title: string; descri
   },
   sentinel: {
     id: {
-      title: "Sentinel-ID — Audit Keamanan Website Pasif untuk Domain Anda",
+      title: "Sentinel ID — Audit Keamanan Website Pasif untuk Domain Anda",
       description:
         "Cek keamanan website Anda secara pasif: header, TLS, DNS, file sensitif, SEO, dan performa. Hanya GET/HEAD, maks. 100 request, tanpa eksploit.",
       keywords: [
+        "Sentinel ID",
         "Sentinel-ID",
         "audit keamanan website",
         "cek keamanan website gratis",
@@ -51,10 +52,11 @@ export const PRODUCT_SEO: Record<ProductId, Record<Lang, { title: string; descri
       ],
     },
     en: {
-      title: "Sentinel-ID — Passive Website Security Audit for Your Own Domain",
+      title: "Sentinel ID — Passive Website Security Audit for Your Own Domain",
       description:
         "Check your website's security passively: headers, TLS, DNS, exposed files, SEO and performance. GET/HEAD only, max 100 requests, no exploits.",
       keywords: [
+        "Sentinel ID",
         "Sentinel-ID",
         "passive website security audit",
         "website security checker",

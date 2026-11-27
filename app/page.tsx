@@ -14,7 +14,7 @@ const jsonLd = {
       url: STUDIO.url,
       logo: `${STUDIO.url}/apple-icon.png`,
       email: STUDIO.email,
-      description: `Independent, founder-led software studio in ${STUDIO.city}. Makers of Depup Cloud, Depup Office and Sentinel-ID.`,
+      description: `Independent, founder-led software studio in ${STUDIO.city}. Makers of Depup Cloud, Depup Office and Sentinel ID.`,
       address: { "@type": "PostalAddress", addressLocality: STUDIO.city.split(",")[0], addressCountry: "ID" },
       areaServed: ["ID", "Worldwide"],
       knowsLanguage: ["en", "id"],

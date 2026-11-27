@@ -3,9 +3,9 @@ import { PolicyPage, type PolicySection } from "@/components/PolicyPage";
 import { STUDIO } from "@/lib/products";
 
 export const metadata: Metadata = {
-  title: "Kebijakan Privasi — Sentinel-ID",
+  title: "Kebijakan Privasi — Sentinel ID",
   description:
-    "Data yang diproses Sentinel-ID (sentinel-id.net) saat Anda mengaudit domain: hasil scan sementara, catatan aktivitas untuk mencegah penyalahgunaan, dan layanan pihak ketiga yang dipakai.",
+    "Data yang diproses Sentinel ID (sentinel-id.net) saat Anda mengaudit domain: hasil scan sementara, catatan aktivitas untuk mencegah penyalahgunaan, dan layanan pihak ketiga yang dipakai.",
   alternates: { canonical: "/sentinel/privacy-policy" },
 };
 
@@ -17,8 +17,8 @@ const sections: PolicySection[] = [
     title: "Lingkup",
     body: (
       <p>
-        Kebijakan ini berlaku untuk <strong>Sentinel-ID</strong> di <a href="https://sentinel-id.net">sentinel-id.net</a>, alat
-        audit keamanan website pasif yang dikembangkan oleh {STUDIO.name}. Sentinel-ID hanya boleh dipakai untuk domain milik
+        Kebijakan ini berlaku untuk <strong>Sentinel ID</strong> di <a href="https://sentinel-id.net">sentinel-id.net</a>, alat
+        audit keamanan website pasif yang dikembangkan oleh {STUDIO.name}. Sentinel ID hanya boleh dipakai untuk domain milik
         Anda sendiri atau yang Anda punya izin tertulis untuk mengauditnya.
       </p>
     ),
@@ -71,7 +71,7 @@ const sections: PolicySection[] = [
     title: "Pihak ketiga",
     body: (
       <ul>
-        <li><strong>Website target</strong> — menerima permintaan GET biasa dari server Sentinel-ID selama audit.</li>
+        <li><strong>Website target</strong> — menerima permintaan GET biasa dari server Sentinel ID selama audit.</li>
         <li><strong>XposedOrNot</strong> — menerima email/domain yang Anda periksa di Breach Peek.</li>
         <li><strong>Cloudflare DNS (DNS-over-HTTPS) dan crt.sh</strong> — menerima nama domain untuk pengecekan DNS dan sertifikat.</li>
         <li><strong>Penyedia hosting dan basis data</strong> — menyimpan data sementara di atas sesuai masa simpannya.</li>
@@ -83,7 +83,7 @@ const sections: PolicySection[] = [
     title: "Cookie",
     body: (
       <p>
-        Sentinel-ID hanya memakai cookie yang diperlukan agar layanan berjalan (pengenal sesi acak <code>sentinel_uid</code>
+        Sentinel ID hanya memakai cookie yang diperlukan agar layanan berjalan (pengenal sesi acak <code>sentinel_uid</code>
         dan sesi admin). Tidak ada cookie iklan atau analitik pihak ketiga.
       </p>
     ),
@@ -102,7 +102,7 @@ const sections: PolicySection[] = [
   {
     id: "anak",
     title: "Anak-anak",
-    body: <p>Sentinel-ID ditujukan untuk pemilik website dan pengembang, bukan untuk anak di bawah 13 tahun.</p>,
+    body: <p>Sentinel ID ditujukan untuk pemilik website dan pengembang, bukan untuk anak di bawah 13 tahun.</p>,
   },
   {
     id: "perubahan",
@@ -124,7 +124,7 @@ const sections: PolicySection[] = [
 export default function SentinelPrivacyPolicyPage() {
   return (
     <PolicyPage
-      product="Sentinel-ID"
+      product="Sentinel ID"
       productHref="/sentinel"
       updated={UPDATED}
       summary={[
@@ -133,7 +133,7 @@ export default function SentinelPrivacyPolicyPage() {
         "IP dan catatan aktivitas disimpan 7 hari untuk mencegah penyalahgunaan.",
         "Tanpa iklan, tanpa analitik pihak ketiga, data tidak dijual.",
       ]}
-      englishSummary="Sentinel-ID processes the domains you audit, temporary scan results (auto-deleted after 30 minutes), and IP/user-agent activity logs kept for 7 days to prevent abuse. Breach checks send the email/domain you enter to XposedOrNot. No ads, no third-party analytics, no data sales."
+      englishSummary="Sentinel ID processes the domains you audit, temporary scan results (auto-deleted after 30 minutes), and IP/user-agent activity logs kept for 7 days to prevent abuse. Breach checks send the email/domain you enter to XposedOrNot. No ads, no third-party analytics, no data sales."
       sections={sections}
     />
   );

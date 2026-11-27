@@ -1,11 +1,11 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Depup Studio — Independent software studio. Depup Cloud, Depup Office and Sentinel-ID.";
+export const alt = "Depup Studio — Independent software studio. Depup Cloud, Depup Office and Sentinel ID.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function OpengraphImage() {
-  const products = ["Depup Cloud", "Depup Office", "Sentinel-ID"];
+  const products = ["Depup Cloud", "Depup Office", "Sentinel ID"];
   return new ImageResponse(
     (
       <div

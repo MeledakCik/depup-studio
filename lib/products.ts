@@ -76,7 +76,7 @@ export const PRODUCTS: Record<Product["id"], Product> = {
   },
   sentinel: {
     id: "sentinel",
-    name: "Sentinel-ID",
+    name: "Sentinel ID",
     tagline: {
       id: "Audit keamanan website pasif untuk domain milik Anda sendiri.",
       en: "Passive website security audits for domains you own.",
