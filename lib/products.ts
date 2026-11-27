@@ -52,7 +52,7 @@ export const OFFICE_PLAY_URL = `https://play.google.com/store/apps/details?id=${
 export const PRODUCTS: Record<Product["id"], Product> = {
   office: {
     id: "office",
-    name: "depup Office",
+    name: "Depup Office",
     tagline: {
       id: "Dokumen, spreadsheet, presentasi, PDF, dan scanner — offline di perangkat Anda.",
       en: "Documents, spreadsheets, presentations, PDF and a scanner — offline on your device.",
@@ -95,7 +95,7 @@ export const PRODUCTS: Record<Product["id"], Product> = {
   },
   cloud: {
     id: "cloud",
-    name: "depup.cloud",
+    name: "Depup Cloud",
     tagline: {
       id: "Deploy ke Vercel, Cloudflare Pages, dan Railway dari satu dashboard — plus konektor Claude (MCP).",
       en: "Deploy to Vercel, Cloudflare Pages and Railway from one dashboard — plus a Claude (MCP) connector.",

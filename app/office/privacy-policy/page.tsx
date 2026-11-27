@@ -3,9 +3,9 @@ import { PolicyPage, type PolicySection } from "@/components/PolicyPage";
 import { PRODUCTS, STUDIO } from "@/lib/products";
 
 export const metadata: Metadata = {
-  title: "Kebijakan Privasi — depup Office",
+  title: "Kebijakan Privasi — Depup Office",
   description:
-    "Bagaimana depup Office menangani data: berkas diproses di perangkat, tanpa akun, tanpa iklan, tanpa analitik. Internet hanya untuk unduhan link yang Anda setujui dan pemeriksaan pembaruan.",
+    "Bagaimana Depup Office menangani data: berkas diproses di perangkat, tanpa akun, tanpa iklan, tanpa analitik. Internet hanya untuk unduhan link yang Anda setujui dan pemeriksaan pembaruan.",
   alternates: { canonical: "/office/privacy-policy" },
 };
 
@@ -18,7 +18,7 @@ const sections: PolicySection[] = [
     body: (
       <>
         <p>
-          Kebijakan ini berlaku untuk aplikasi <strong>depup Office</strong> di Android (paket <code>cloud.depup.office</code>)
+          Kebijakan ini berlaku untuk aplikasi <strong>Depup Office</strong> di Android (paket <code>cloud.depup.office</code>)
           dan iOS, yang dikembangkan oleh {STUDIO.name}. Kebijakan ini menjelaskan data apa yang diproses aplikasi, di mana
           data itu disimpan, dan kapan aplikasi memakai internet.
         </p>
@@ -31,7 +31,7 @@ const sections: PolicySection[] = [
     body: (
       <>
         <p>
-          <strong>Kami tidak mengumpulkan data pribadi.</strong> depup Office tidak memiliki akun atau pendaftaran, tidak
+          <strong>Kami tidak mengumpulkan data pribadi.</strong> Depup Office tidak memiliki akun atau pendaftaran, tidak
           menampilkan iklan, dan tidak memakai alat analitik atau pelacak. Kami tidak menerima isi dokumen, foto, catatan,
           atau daftar berkas Anda.
         </p>
@@ -50,7 +50,7 @@ const sections: PolicySection[] = [
     title: "Kapan aplikasi memakai internet",
     body: (
       <>
-        <p>depup Office bekerja offline. Internet hanya dipakai pada tiga keadaan berikut:</p>
+        <p>Depup Office bekerja offline. Internet hanya dipakai pada tiga keadaan berikut:</p>
         <div className="policy-table-wrap">
           <table>
             <thead>
@@ -58,7 +58,7 @@ const sections: PolicySection[] = [
             </thead>
             <tbody>
               <tr>
-                <td data-label="Keadaan"><strong>Buka dari link.</strong> Anda membagikan link berkas (mis. Google Drive, Google Docs, share.google, atau LMS) ke depup Office lalu menekan “Unduh &amp; buka”.</td>
+                <td data-label="Keadaan"><strong>Buka dari link.</strong> Anda membagikan link berkas (mis. Google Drive, Google Docs, share.google, atau LMS) ke Depup Office lalu menekan “Unduh &amp; buka”.</td>
                 <td data-label="Yang dikirim">Permintaan HTTPS biasa untuk mengunduh berkas itu (alamat link, alamat IP perangkat seperti saat membuka di browser). Tanpa cookie atau data akun Anda.</td>
                 <td data-label="Ke mana">Server pemilik link tersebut.</td>
               </tr>
@@ -144,7 +144,7 @@ const sections: PolicySection[] = [
     title: "Anak-anak",
     body: (
       <p>
-        depup Office dapat dipakai pelajar, guru, dan pekerja. Karena aplikasi tidak mengumpulkan data pribadi dari siapa
+        Depup Office dapat dipakai pelajar, guru, dan pekerja. Karena aplikasi tidak mengumpulkan data pribadi dari siapa
         pun, aplikasi juga tidak mengumpulkan data dari anak-anak.
       </p>
     ),
@@ -185,7 +185,7 @@ const sections: PolicySection[] = [
 export default function OfficePrivacyPolicyPage() {
   return (
     <PolicyPage
-      product="depup Office"
+      product="Depup Office"
       productHref="/office"
       updated={UPDATED}
       summary={[
@@ -194,7 +194,7 @@ export default function OfficePrivacyPolicyPage() {
         "Internet hanya untuk mengunduh link yang Anda setujui dan memeriksa pembaruan.",
         "Kode Dokumen Terlindungi disimpan di Keystore/Keychain perangkat, tidak dikirim ke server.",
       ]}
-      englishSummary="depup Office collects no personal data: no account, no ads, no analytics. Files are processed and stored on your device. The app uses the internet only to download a link you explicitly share to it and approve, and to check Google Play / the App Store for a required update."
+      englishSummary="Depup Office collects no personal data: no account, no ads, no analytics. Files are processed and stored on your device. The app uses the internet only to download a link you explicitly share to it and approve, and to check Google Play / the App Store for a required update."
       sections={sections}
     />
   );

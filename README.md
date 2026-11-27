@@ -1,6 +1,6 @@
 # Depup Studio
 
-Website profil Depup Studio, perusahaan pengembang produk digital di balik depup.cloud dan depup Office.
+Website profil Depup Studio, perusahaan pengembang produk digital di balik Depup Cloud dan Depup Office.
 
 ## Menjalankan secara lokal
 
@@ -16,6 +16,6 @@ Buka [http://localhost:3000](http://localhost:3000).
 ## Produk
 
 - **depup.cloud** — penyimpanan cloud untuk file. [Kunjungi situs](https://depup.cloud)
-- **depup Office** — aplikasi produktivitas untuk dokumen, spreadsheet, presentasi, dan PDF.
+- **Depup Office** — aplikasi produktivitas untuk dokumen, spreadsheet, presentasi, dan PDF.
 
 Keduanya tersedia melalui Google Play Store dari tautan pada halaman produk.

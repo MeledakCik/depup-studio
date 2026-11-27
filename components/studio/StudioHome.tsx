@@ -44,7 +44,7 @@ const CONTACT = `mailto:${STUDIO.email}`;
  * Only products the public can actually use today are shown on the homepage (checked 25 Nov 2026):
  * - depup.cloud: live web app at depup.cloud (depup.web.id redirects there)
  * - Sentinel-ID: live web app at sentinel-id.net
- * - depup Office: Android APK published as GitHub release v4.4.2
+ * - Depup Office: Android APK published as GitHub release v4.4.2
  * Other systems stay in lib/studio-data.ts; add an id here once it has a public site, store listing or release.
  */
 const RELEASED = ["cloud", "office", "sentinel"];
@@ -73,7 +73,7 @@ const OFFICE_RELEASE: Update = {
     num: "03",
     area: "Android",
     month: "November",
-    title: "depup Office 4.4.2 for Android",
+    title: "Depup Office 4.4.2 for Android",
     body: "Protected documents you can share, encrypted with AES-256-GCM, plus PDF, photo, Excel and Word tools — available as an APK release.",
     accent: "titanium",
     systemId: "office",
@@ -112,7 +112,7 @@ const PRINCIPLE_FACTS: Record<string, Partial<Principle>> = {
     title: "Offline-First Tooling",
     desc: "Documents, spreadsheets, presentations, PDF and scanning run on the device, so work continues without a connection.",
     linksHeading: "Built into",
-    links: [{ label: "depup Office", href: "/en/office" }],
+    links: [{ label: "Depup Office", href: "/en/office" }],
     metrics: [
       ["Network needed", "None"],
       ["Processing", "On-device"],
@@ -244,7 +244,7 @@ const wrap = "mx-auto max-w-[1240px] px-6 md:px-10";
 
 const NAV = [
   { label: "Spotlight", href: "#spotlight" },
-  { label: "depup Office", href: "/en/office" },
+  { label: "Depup Office", href: "/en/office" },
   { label: "Updates", href: "#updates" },
   { label: "Ecosystem", href: "#ecosystem" },
   { label: "Engineering", href: "#engineering" },
@@ -841,7 +841,7 @@ function Spotlight() {
           </span>
         </h1>
         <p className="st-rise mx-auto mt-8 max-w-[660px] text-[19px] leading-[1.55] text-[#2E3A50] md:text-[21px]" style={EASE_DELAY(750)}>
-          We build and run depup.cloud, depup Office and Sentinel-ID — software, infrastructure, and useful tools designed around
+          We build and run Depup Cloud, Depup Office and Sentinel-ID — software, infrastructure, and useful tools designed around
           the way people get things done.
         </p>
         <div className="st-rise mt-10 flex flex-wrap justify-center gap-3" style={EASE_DELAY(880)}>
@@ -2287,8 +2287,8 @@ const FOOTER: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Products",
     links: [
-      { label: "depup.cloud", href: "https://depup.cloud" },
-      { label: "depup Office", href: "/en/office" },
+      { label: "Depup Cloud", href: "/en/cloud" },
+      { label: "Depup Office", href: "/en/office" },
       { label: "Sentinel-ID", href: "/en/sentinel" },
     ],
   },
@@ -2297,7 +2297,7 @@ const FOOTER: { title: string; links: { label: string; href: string }[] }[] = [
     links: [
       { label: "Open depup.cloud", href: "https://depup.cloud" },
       { label: "sentinel-id.net", href: "https://sentinel-id.net" },
-      { label: "Get depup Office", href: "/en/office" },
+      { label: "Get Depup Office", href: "/en/office" },
     ],
   },
   {

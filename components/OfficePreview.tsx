@@ -162,7 +162,7 @@ const COPY = {
     points: [
       "Important actions stay close and easy to find.",
       "File colours help you spot formats at a glance.",
-      "This preview follows the structure of the depup Office Android app.",
+      "This preview follows the structure of the Depup Office Android app.",
     ],
   },
 } as const;
@@ -378,7 +378,7 @@ function ProfileScreen({ t }: { t: Copy }) {
       </div>
       <div className="mb-3 flex items-center gap-3 rounded-2xl bg-white p-3.5">
             <Image src="/office-logo.svg" width={42} height={42} alt="" className="rounded-xl" />
-        <div><p className="text-[11px] font-bold text-[#111111]">depup Office</p><p className="mt-1 text-[9px] text-[#65625d]">{t.version}</p></div>
+        <div><p className="text-[11px] font-bold text-[#111111]">Depup Office</p><p className="mt-1 text-[9px] text-[#65625d]">{t.version}</p></div>
         <ChevronRight className="ml-auto h-4 w-4 text-[#65625d]" />
       </div>
       <SectionLabel>{t.prefs}</SectionLabel>

@@ -7,7 +7,7 @@ import { Bot, CheckCircle2, Clock, Cloud, Link2, Loader2, Rocket } from "lucide-
 const COPY = {
   id: {
     tabs: { deploy: "Deploy", link: "Link Instan", claude: "Konektor Claude" },
-    tablist: "Pratinjau depup.cloud",
+    tablist: "Pratinjau Depup Cloud",
     deploys: [
       { name: "toko-kue", platform: "Vercel", domain: "toko-kue.vercel.app", status: "ready", time: "2 mnt lalu" },
       { name: "landing-sekolah", platform: "Cloudflare Pages", domain: "landing-sekolah.pages.dev", status: "building", time: "baru saja" },
@@ -26,7 +26,7 @@ const COPY = {
   },
   en: {
     tabs: { deploy: "Deploy", link: "Instant Link", claude: "Claude connector" },
-    tablist: "depup.cloud preview",
+    tablist: "Depup Cloud preview",
     deploys: [
       { name: "bakery-shop", platform: "Vercel", domain: "bakery-shop.vercel.app", status: "ready", time: "2 min ago" },
       { name: "school-landing", platform: "Cloudflare Pages", domain: "school-landing.pages.dev", status: "building", time: "just now" },
@@ -53,7 +53,7 @@ const tabs = [
 
 type Tab = (typeof tabs)[number]["id"];
 
-/** Pratinjau dashboard depup.cloud dengan DATA CONTOH (tidak terhubung ke akun apa pun). */
+/** Pratinjau dashboard Depup Cloud dengan DATA CONTOH (tidak terhubung ke akun apa pun). */
 export function CloudPreview({ expanded = false, lang = "id" }: { expanded?: boolean; lang?: Lang }) {
   const [tab, setTab] = useState<Tab>("deploy");
   const t = COPY[lang];
@@ -130,7 +130,7 @@ export function CloudPreview({ expanded = false, lang = "id" }: { expanded?: boo
               {t.ask}
             </div>
             <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-white/[.08] bg-white/[.04] px-3.5 py-2.5 text-sm">
-              <span className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-slate-400"><Bot className="h-3.5 w-3.5" /> depup.cloud · deploy_project</span>
+              <span className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-slate-400"><Bot className="h-3.5 w-3.5" /> Depup Cloud · deploy_project</span>
               <p>{t.done[0]}<span className="text-sky-300">{t.done[1]}</span>{t.done[2]}</p>
             </div>
             <p className="text-[11px] leading-5 text-slate-400">{t.oauth}</p>

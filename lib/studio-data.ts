@@ -33,7 +33,7 @@ export const SYSTEMS: SystemItem[] = [
   {
     id: "cloud",
     num: "01",
-    name: "depup.cloud",
+    name: "Depup Cloud",
     category: "cloud",
     badge: "Flagship Cloud & Remote MCP",
     description:
@@ -43,7 +43,7 @@ export const SYSTEMS: SystemItem[] = [
     accent: "sky",
     featured: true,
     href: "/en/cloud",
-    cta: "Explore depup.cloud",
+    cta: "Explore Depup Cloud",
     specs: [
       ["Runtime", "Managed Edge Protocol"],
       ["Auth", "Supabase Auth"],
@@ -51,12 +51,12 @@ export const SYSTEMS: SystemItem[] = [
       ["Tenancy", "Multi-tenant"],
     ],
     detail:
-      "depup.cloud is the connective layer of the studio: deployments, hosting and remote MCP gateways managed from one console, so agents and teams reach the tools they need without exposing private networks.",
+      "Depup Cloud is the connective layer of the studio: deployments, hosting and remote MCP gateways managed from one console, so agents and teams reach the tools they need without exposing private networks.",
   },
   {
     id: "office",
     num: "02",
-    name: "depup Office",
+    name: "Depup Office",
     category: "productivity",
     badge: "Document & Productivity",
     description:
@@ -65,7 +65,7 @@ export const SYSTEMS: SystemItem[] = [
     tags: ["Android", "iOS · macOS · Windows soon"],
     accent: "titanium",
     href: "/en/office",
-    cta: "Explore depup Office",
+    cta: "Explore Depup Office",
     specs: [
       ["Android", "Kotlin native"],
       ["Desktop", "Windows .NET 8.0"],
@@ -167,7 +167,7 @@ export const SYSTEMS: SystemItem[] = [
     category: "developer",
     badge: "Hybrid Workspace",
     description:
-      "Offline-first hybrid web and desktop IDE combining VS Code ergonomics with depup.cloud deployment automation.",
+      "Offline-first hybrid web and desktop IDE combining VS Code ergonomics with Depup Cloud deployment automation.",
     tagLabel: "Features",
     tags: ["IndexedDB Cache", "Direct Deploy"],
     accent: "titanium",
@@ -175,11 +175,11 @@ export const SYSTEMS: SystemItem[] = [
     specs: [
       ["State", "IndexedDB local-first"],
       ["Sync", "Instant cloud toggle"],
-      ["Deploy", "depup.cloud direct"],
+      ["Deploy", "Depup Cloud direct"],
       ["Mode", "Web + desktop"],
     ],
     detail:
-      "Write code with the network gone. Depup Code keeps the workspace locally, syncs when you choose, and ships straight to depup.cloud.",
+      "Write code with the network gone. Depup Code keeps the workspace locally, syncs when you choose, and ships straight to Depup Cloud.",
   },
   {
     id: "cikai",
@@ -346,7 +346,7 @@ export const PRINCIPLES: Principle[] = [
     linksHeading: "Air-gapped and hybrid runtime",
     links: [
       { label: "Depup Code", href: "#system:code" },
-      { label: "depup Office", href: "/en/office" },
+      { label: "Depup Office", href: "/en/office" },
       { label: "Depup OS", href: "#system:os" },
     ],
     metrics: [
@@ -372,7 +372,7 @@ export const UPDATES: UpdateItem[] = [
     num: "01",
     area: "Cloud",
     month: "November",
-    title: "Introducing depup.cloud Remote MCP Gateway",
+    title: "Introducing Depup Cloud Remote MCP Gateway",
     body: "Native cloud connector bridging local model agents directly to distributed cloud instances with authenticated session vaults.",
     accent: "sky",
     systemId: "cloud",
@@ -390,7 +390,7 @@ export const UPDATES: UpdateItem[] = [
     num: "03",
     area: "Desktop",
     month: "October",
-    title: "depup Office brings document work to Windows",
+    title: "Depup Office brings document work to Windows",
     body: "Standalone Windows .NET 8.0 deployment with hardware-accelerated direct vector processing and multi-page batch recognition.",
     accent: "titanium",
     systemId: "office",

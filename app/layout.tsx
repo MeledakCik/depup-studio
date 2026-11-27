@@ -24,7 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 const SITE = "https://depupstudio.com";
 const DESCRIPTION =
-  "Depup Studio is an independent, founder-led software studio in Bandung, Indonesia. We build and run depup.cloud, depup Office and Sentinel-ID.";
+  "Depup Studio is an independent, founder-led software studio in Bandung, Indonesia. We build and run Depup Cloud, Depup Office and Sentinel-ID.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -40,8 +40,9 @@ export const metadata: Metadata = {
   keywords: [
     "Depup Studio",
     "Depup",
+    "Depup Cloud",
     "depup.cloud",
-    "depup Office",
+    "Depup Office",
     "Sentinel-ID",
     "software studio Indonesia",
     "software studio Bandung",

@@ -11,11 +11,11 @@ type ProductId = Product["id"];
 export const PRODUCT_SEO: Record<ProductId, Record<Lang, { title: string; description: string; keywords: string[] }>> = {
   office: {
     id: {
-      title: "depup Office — Aplikasi Scan Dokumen, PDF & Office Offline untuk Android",
+      title: "Depup Office — Aplikasi Scan Dokumen, PDF & Office Offline untuk Android",
       description:
         "Aplikasi offline untuk Android: scan dokumen, edit PDF, buat dokumen, spreadsheet, dan presentasi tanpa internet. iOS, macOS & Windows segera hadir.",
       keywords: [
-        "depup Office",
+        "Depup Office",
         "aplikasi scan dokumen offline",
         "aplikasi office offline android",
         "scanner dokumen android",
@@ -24,11 +24,11 @@ export const PRODUCT_SEO: Record<ProductId, Record<Lang, { title: string; descri
       ],
     },
     en: {
-      title: "depup Office — Offline Document Scanner, PDF & Office App for Android",
+      title: "Depup Office — Offline Document Scanner, PDF & Office App for Android",
       description:
         "Offline Android app: scan documents, edit PDFs, and create documents, spreadsheets and presentations without internet. iOS, macOS & Windows coming soon.",
       keywords: [
-        "depup Office",
+        "Depup Office",
         "offline document scanner app",
         "offline office app android",
         "document scanner android",
@@ -65,10 +65,11 @@ export const PRODUCT_SEO: Record<ProductId, Record<Lang, { title: string; descri
   },
   cloud: {
     id: {
-      title: "depup.cloud — Dashboard Deploy ke Vercel, Cloudflare Pages & Railway",
+      title: "Depup Cloud — Dashboard Deploy ke Vercel, Cloudflare Pages & Railway",
       description:
         "Dashboard deploy buatan Indonesia: tempel link GitHub, cek repo, lalu deploy ke Vercel, Cloudflare Pages, atau Railway dari satu tempat.",
       keywords: [
+        "Depup Cloud",
         "depup.cloud",
         "Depup",
         "deploy dashboard Indonesia",
@@ -78,10 +79,11 @@ export const PRODUCT_SEO: Record<ProductId, Record<Lang, { title: string; descri
       ],
     },
     en: {
-      title: "depup.cloud — Deploy to Vercel, Cloudflare Pages & Railway in One Place",
+      title: "Depup Cloud — Deploy to Vercel, Cloudflare Pages & Railway in One Place",
       description:
         "Paste a GitHub link, check the repo, then deploy to Vercel, Cloudflare Pages or Railway from one dashboard — with a Claude (MCP) connector.",
       keywords: [
+        "Depup Cloud",
         "depup.cloud",
         "Depup",
         "deploy dashboard",
