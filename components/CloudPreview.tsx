@@ -1,25 +1,62 @@
 "use client";
 
 import { useState } from "react";
+import type { Lang } from "@/lib/i18n";
 import { Bot, CheckCircle2, Clock, Cloud, Link2, Loader2, Rocket } from "lucide-react";
 
+const COPY = {
+  id: {
+    tabs: { deploy: "Deploy", link: "Link Instan", claude: "Konektor Claude" },
+    tablist: "Pratinjau depup.cloud",
+    deploys: [
+      { name: "toko-kue", platform: "Vercel", domain: "toko-kue.vercel.app", status: "ready", time: "2 mnt lalu" },
+      { name: "landing-sekolah", platform: "Cloudflare Pages", domain: "landing-sekolah.pages.dev", status: "building", time: "baru saja" },
+      { name: "api-absensi", platform: "Railway", domain: "api-absensi.up.railway.app", status: "ready", time: "1 jam lalu" },
+    ],
+    tokens: "Hubungkan token Vercel, Cloudflare, atau Railway sekali; token disimpan terenkripsi AES-256-GCM dan hanya dipakai di server.",
+    drop: "Tarik folder website ke sini",
+    dropSub: "HTML/CSS/JS statis · langsung tayang",
+    active: "Link aktif",
+    activeLink: "tugas-web.depup.web.id",
+    expires: "Kedaluwarsa dalam 7 hari",
+    ask: "Deploy repo toko-kue ke Vercel.",
+    done: ["Selesai — ", "toko-kue.vercel.app", " sudah tayang."],
+    oauth: "Konektor MCP memakai OAuth 2.0 + PKCE. Token platform tidak pernah dikirim ke chat.",
+    sample: "Data contoh untuk pratinjau.",
+  },
+  en: {
+    tabs: { deploy: "Deploy", link: "Instant Link", claude: "Claude connector" },
+    tablist: "depup.cloud preview",
+    deploys: [
+      { name: "bakery-shop", platform: "Vercel", domain: "bakery-shop.vercel.app", status: "ready", time: "2 min ago" },
+      { name: "school-landing", platform: "Cloudflare Pages", domain: "school-landing.pages.dev", status: "building", time: "just now" },
+      { name: "attendance-api", platform: "Railway", domain: "attendance-api.up.railway.app", status: "ready", time: "1 hr ago" },
+    ],
+    tokens: "Connect your Vercel, Cloudflare or Railway token once; it is stored encrypted with AES-256-GCM and only used on the server.",
+    drop: "Drop a website folder here",
+    dropSub: "Static HTML/CSS/JS · live instantly",
+    active: "Active link",
+    activeLink: "class-project.depup.web.id",
+    expires: "Expires in 7 days",
+    ask: "Deploy the bakery-shop repo to Vercel.",
+    done: ["Done — ", "bakery-shop.vercel.app", " is live."],
+    oauth: "The MCP connector uses OAuth 2.0 + PKCE. Platform tokens are never sent to the chat.",
+    sample: "Sample data for this preview.",
+  },
+} as const;
+
 const tabs = [
-  { id: "deploy", label: "Deploy", icon: Rocket },
-  { id: "link", label: "Link Instan", icon: Link2 },
-  { id: "claude", label: "Konektor Claude", icon: Bot },
+  { id: "deploy", icon: Rocket },
+  { id: "link", icon: Link2 },
+  { id: "claude", icon: Bot },
 ] as const;
 
 type Tab = (typeof tabs)[number]["id"];
 
-const deploys = [
-  { name: "toko-kue", platform: "Vercel", domain: "toko-kue.vercel.app", status: "ready", time: "2 mnt lalu" },
-  { name: "landing-sekolah", platform: "Cloudflare Pages", domain: "landing-sekolah.pages.dev", status: "building", time: "baru saja" },
-  { name: "api-absensi", platform: "Railway", domain: "api-absensi.up.railway.app", status: "ready", time: "1 jam lalu" },
-] as const;
-
 /** Pratinjau dashboard depup.cloud dengan DATA CONTOH (tidak terhubung ke akun apa pun). */
-export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
+export function CloudPreview({ expanded = false, lang = "id" }: { expanded?: boolean; lang?: Lang }) {
   const [tab, setTab] = useState<Tab>("deploy");
+  const t = COPY[lang];
   return (
     <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#0b1220] text-slate-200 shadow-[0_30px_90px_rgba(8,20,45,0.35)]">
       <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
@@ -31,8 +68,8 @@ export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
         </span>
       </div>
 
-      <div className="obs-noscroll flex gap-1 overflow-x-auto border-b border-white/10 px-3 pt-3" role="tablist" aria-label="Pratinjau depup.cloud">
-        {tabs.map(({ id, label, icon: Icon }) => (
+      <div className="obs-noscroll flex gap-1 overflow-x-auto border-b border-white/10 px-3 pt-3" role="tablist" aria-label={t.tablist}>
+        {tabs.map(({ id, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -43,7 +80,7 @@ export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
               tab === id ? "bg-white/[.08] text-white" : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <Icon className="h-3.5 w-3.5" /> {label}
+            <Icon className="h-3.5 w-3.5" /> {t.tabs[id]}
           </button>
         ))}
       </div>
@@ -51,7 +88,7 @@ export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
       <div className={`p-4 sm:p-5 ${expanded ? "min-h-[320px]" : "min-h-[260px]"}`} role="tabpanel">
         {tab === "deploy" && (
           <div className="space-y-2.5">
-            {deploys.map((d) => (
+            {t.deploys.map((d) => (
               <div key={d.name} className="flex items-center gap-3 rounded-xl border border-white/[.08] bg-white/[.03] px-3.5 py-3">
                 {d.status === "ready" ? (
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
@@ -68,7 +105,7 @@ export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
             ))}
             {expanded && (
               <p className="pt-2 text-xs leading-5 text-slate-400">
-                Hubungkan token Vercel, Cloudflare, atau Railway sekali; token disimpan terenkripsi AES-256-GCM dan hanya dipakai di server.
+                {t.tokens}
               </p>
             )}
           </div>
@@ -77,30 +114,30 @@ export function CloudPreview({ expanded = false }: { expanded?: boolean }) {
           <div className="grid gap-3 sm:grid-cols-[1.2fr_.8fr]">
             <div className="grid place-items-center rounded-xl border border-dashed border-white/15 bg-white/[.02] px-4 py-10 text-center">
               <Link2 className="h-6 w-6 text-sky-300" />
-              <p className="mt-3 text-sm font-medium text-white">Tarik folder website ke sini</p>
-              <p className="mt-1 text-[11px] text-slate-400">HTML/CSS/JS statis · langsung tayang</p>
+              <p className="mt-3 text-sm font-medium text-white">{t.drop}</p>
+              <p className="mt-1 text-[11px] text-slate-400">{t.dropSub}</p>
             </div>
             <div className="space-y-2.5 rounded-xl border border-white/[.08] bg-white/[.03] p-4">
-              <p className="text-[11px] uppercase tracking-wider text-slate-400">Link aktif</p>
-              <p className="truncate text-sm font-medium text-sky-300">tugas-web.depup.web.id</p>
-              <p className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><Clock className="h-3.5 w-3.5" /> Kedaluwarsa dalam 7 hari</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-400">{t.active}</p>
+              <p className="truncate text-sm font-medium text-sky-300">{t.activeLink}</p>
+              <p className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><Clock className="h-3.5 w-3.5" /> {t.expires}</p>
             </div>
           </div>
         )}
         {tab === "claude" && (
           <div className="space-y-3">
             <div className="ml-auto max-w-[80%] rounded-2xl rounded-br-md bg-sky-500/20 px-3.5 py-2.5 text-sm text-sky-50">
-              Deploy repo toko-kue ke Vercel.
+              {t.ask}
             </div>
             <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-white/[.08] bg-white/[.04] px-3.5 py-2.5 text-sm">
               <span className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-slate-400"><Bot className="h-3.5 w-3.5" /> depup.cloud · deploy_project</span>
-              <p>Selesai — <span className="text-sky-300">toko-kue.vercel.app</span> sudah tayang.</p>
+              <p>{t.done[0]}<span className="text-sky-300">{t.done[1]}</span>{t.done[2]}</p>
             </div>
-            <p className="text-[11px] leading-5 text-slate-400">Konektor MCP memakai OAuth 2.0 + PKCE. Token platform tidak pernah dikirim ke chat.</p>
+            <p className="text-[11px] leading-5 text-slate-400">{t.oauth}</p>
           </div>
         )}
       </div>
-      <p className="border-t border-white/10 px-4 py-2 text-[10px] text-slate-400">Data contoh untuk pratinjau.</p>
+      <p className="border-t border-white/10 px-4 py-2 text-[10px] text-slate-400">{t.sample}</p>
     </div>
   );
 }

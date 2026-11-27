@@ -1,25 +1,40 @@
 import type { MetadataRoute } from "next";
+import { LANGS, languageAlternates, localePath } from "@/lib/i18n";
+import { PRODUCTS, STUDIO } from "@/lib/products";
 
-const BASE = "https://depupstudio.com";
 // Bump when page content meaningfully changes, so crawlers see a real signal instead of "changed every build".
-const UPDATED = new Date("2026-11-25");
+const UPDATED = new Date("2026-11-27");
 
-const PAGES: { path: string; priority: number; freq: "monthly" | "yearly"; images?: string[] }[] = [
-  { path: "", priority: 1, freq: "monthly", images: ["/opengraph-image", "/updates/cloud.webp", "/updates/office.webp", "/updates/sentinel.webp"] },
-  { path: "/cloud", priority: 0.9, freq: "monthly", images: ["/updates/cloud.webp"] },
-  { path: "/office", priority: 0.9, freq: "monthly", images: ["/updates/office.webp", "/office-app-icon.png"] },
-  { path: "/sentinel", priority: 0.9, freq: "monthly", images: ["/updates/sentinel.webp"] },
-  { path: "/privacy", priority: 0.3, freq: "yearly" },
-  { path: "/office/privacy-policy", priority: 0.3, freq: "yearly" },
-  { path: "/sentinel/privacy-policy", priority: 0.3, freq: "yearly" },
-];
+type Entry = MetadataRoute.Sitemap[number];
+const abs = (path: string) => `${STUDIO.url}${path}`;
+
+/** Every language version of a page, each listing all versions as hreflang alternates. */
+function localized(path: string, extra: Omit<Entry, "url">): Entry[] {
+  const languages = Object.fromEntries(Object.entries(languageAlternates(path)).map(([k, v]) => [k, abs(v)]));
+  return LANGS.map((lang) => ({ url: abs(localePath(path, lang)), ...extra, alternates: { languages } }));
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return PAGES.map((p) => ({
-    url: `${BASE}${p.path}`,
-    lastModified: UPDATED,
-    changeFrequency: p.freq,
-    priority: p.priority,
-    ...(p.images ? { images: p.images.map((i) => `${BASE}${i}`) } : {}),
-  }));
+  const products = Object.values(PRODUCTS);
+  return [
+    {
+      url: STUDIO.url,
+      lastModified: UPDATED,
+      changeFrequency: "monthly",
+      priority: 1,
+      images: [abs("/opengraph-image"), ...products.map((p) => abs(`/updates/${p.id}.webp`))],
+    },
+    ...products.flatMap((p) =>
+      localized(p.path, {
+        lastModified: UPDATED,
+        changeFrequency: "monthly",
+        priority: 0.9,
+        images: [abs(`/updates/${p.id}.webp`), ...(p.id === "office" ? [abs("/office-app-icon.png")] : [])],
+      }),
+    ),
+    // Policies are Indonesian only; depup.cloud's policy lives on its own domain.
+    ...["/privacy", ...products.filter((p) => p.privacyHostedHere).map((p) => p.privacy)].map(
+      (path): Entry => ({ url: abs(path), lastModified: UPDATED, changeFrequency: "yearly", priority: 0.3 }),
+    ),
+  ];
 }

@@ -42,7 +42,7 @@ export const SYSTEMS: SystemItem[] = [
     tags: ["depup.cloud", "depup.web.id", "MCP Connectors", "Supabase Auth"],
     accent: "sky",
     featured: true,
-    href: "/cloud",
+    href: "/en/cloud",
     cta: "Explore depup.cloud",
     specs: [
       ["Runtime", "Managed Edge Protocol"],
@@ -64,7 +64,7 @@ export const SYSTEMS: SystemItem[] = [
     tagLabel: "Platforms",
     tags: ["Android", "iOS · macOS · Windows soon"],
     accent: "titanium",
-    href: "/office",
+    href: "/en/office",
     cta: "Explore depup Office",
     specs: [
       ["Android", "Kotlin native"],
@@ -86,7 +86,7 @@ export const SYSTEMS: SystemItem[] = [
     tagLabel: "Prinsip",
     tags: ["GET-only", "Same-origin", "Manual review"],
     accent: "pink",
-    href: "/sentinel",
+    href: "/en/sentinel",
     cta: "Explore Sentinel-ID",
     specs: [
       ["Method", "GET-only"],
@@ -277,7 +277,7 @@ export const PRINCIPLES: Principle[] = [
     desc: "Passive, non-invasive zero-trust validation engines. Same-origin bounds, GET-only query architectures, and strict rate envelopes prioritizing system integrity.",
     linksHeading: "Audited deterministic perimeter",
     links: [
-      { label: "Sentinel-ID", href: "/sentinel" },
+      { label: "Sentinel-ID", href: "/en/sentinel" },
       { label: "sentinel-id.net", href: "https://sentinel-id.net", external: true },
       { label: "Privacy policy", href: "/sentinel/privacy-policy" },
     ],
@@ -346,7 +346,7 @@ export const PRINCIPLES: Principle[] = [
     linksHeading: "Air-gapped and hybrid runtime",
     links: [
       { label: "Depup Code", href: "#system:code" },
-      { label: "depup Office", href: "/office" },
+      { label: "depup Office", href: "/en/office" },
       { label: "Depup OS", href: "#system:os" },
     ],
     metrics: [

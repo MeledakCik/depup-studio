@@ -10,6 +10,22 @@ import {
   Globe,
   ShieldCheck,
 } from "lucide-react";
+import type { Lang } from "@/lib/i18n";
+
+const COPY = {
+  id: {
+    choose: "Pilih tampilan preview",
+    patterns: "Pola potensial · perlu tinjauan manual",
+    count: "3 contoh dari 12",
+    note: "Preview ilustratif. Tidak ada pemindaian yang dijalankan di halaman ini.",
+  },
+  en: {
+    choose: "Choose a preview view",
+    patterns: "Potential patterns · need manual review",
+    count: "3 samples of 12",
+    note: "Illustrative preview. No scan runs on this page.",
+  },
+} as const;
 
 const tabs = [
   { id: "overview", label: "Overview", icon: Activity },
@@ -114,8 +130,9 @@ Requests: 29 / 100
   );
 }
 
-export function SentinelPreview({ expanded = false }: { expanded?: boolean }) {
+export function SentinelPreview({ expanded = false, lang = "id" }: { expanded?: boolean; lang?: Lang }) {
   const [tab, setTab] = useState<PreviewTab>("overview");
+  const t = COPY[lang];
   return (
     <div className={`${expanded ? "mx-auto max-w-6xl rounded-[2rem] border border-slate-700 bg-[#111c32] p-4 shadow-[0_30px_90px_rgba(15,23,42,.2)] sm:p-6" : "rounded-[1.5rem] border border-slate-700 bg-[#111c32] p-3 shadow-[0_25px_70px_rgba(15,23,42,.25)] sm:p-4"}`}>
       <div className="flex items-center gap-3 border-b border-white/10 pb-3 sm:pb-4">
@@ -124,7 +141,7 @@ export function SentinelPreview({ expanded = false }: { expanded?: boolean }) {
         <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[8px] font-semibold text-amber-200 sm:text-[9px]">SAMPLE DATA</span>
       </div>
       <div className={`${expanded ? "grid gap-5 pt-4 md:grid-cols-[170px_minmax(0,1fr)] sm:pt-5" : "pt-3 sm:pt-4"}`}>
-        <nav className={`${expanded ? "flex gap-1 overflow-x-auto pb-1 md:flex-col md:gap-2" : "mb-3 flex gap-1 overflow-x-auto pb-1"}`} aria-label="Pilih tampilan preview">
+        <nav className={`${expanded ? "flex gap-1 overflow-x-auto pb-1 md:flex-col md:gap-2" : "mb-3 flex gap-1 overflow-x-auto pb-1"}`} aria-label={t.choose}>
           {tabs.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)} className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[9px] font-medium transition-colors sm:px-3 sm:text-[10px] ${expanded ? "md:w-full" : ""} ${tab === id ? "bg-blue-500/15 text-blue-200" : "text-slate-400 hover:bg-white/[.06] hover:text-slate-200"}`}><Icon className="h-3.5 w-3.5" />{label}</button>)}
         </nav>
         <div className="min-w-0">
@@ -133,10 +150,10 @@ export function SentinelPreview({ expanded = false }: { expanded?: boolean }) {
             <span className="inline-flex items-center gap-1.5 text-[8px] text-slate-400 sm:text-[9px]"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Finished · GET-only</span>
           </div>
           {tab === "overview" && <OverviewPanel />}
-          {tab === "findings" && <div className="rounded-xl border border-white/10 bg-white/[.04] p-4"><div className="mb-4 flex items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-white">Findings table</h3><p className="mt-1 text-[9px] text-slate-400">Pola potensial · perlu tinjauan manual</p></div><span className="text-[9px] text-slate-400">3 contoh dari 12</span></div><FindingRows /></div>}
+          {tab === "findings" && <div className="rounded-xl border border-white/10 bg-white/[.04] p-4"><div className="mb-4 flex items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-white">Findings table</h3><p className="mt-1 text-[9px] text-slate-400">{t.patterns}</p></div><span className="text-[9px] text-slate-400">{t.count}</span></div><FindingRows /></div>}
           {tab === "graph" && <GraphPanel />}
           {tab === "report" && <ReportPanel />}
-          <p className="mt-3 text-[8px] leading-4 text-slate-400">Preview ilustratif. Tidak ada pemindaian yang dijalankan di halaman ini.</p>
+          <p className="mt-3 text-[8px] leading-4 text-slate-400">{t.note}</p>
         </div>
       </div>
     </div>

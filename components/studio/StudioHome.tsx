@@ -112,7 +112,7 @@ const PRINCIPLE_FACTS: Record<string, Partial<Principle>> = {
     title: "Offline-First Tooling",
     desc: "Documents, spreadsheets, presentations, PDF and scanning run on the device, so work continues without a connection.",
     linksHeading: "Built into",
-    links: [{ label: "depup Office", href: "/office" }],
+    links: [{ label: "depup Office", href: "/en/office" }],
     metrics: [
       ["Network needed", "None"],
       ["Processing", "On-device"],
@@ -244,7 +244,7 @@ const wrap = "mx-auto max-w-[1240px] px-6 md:px-10";
 
 const NAV = [
   { label: "Spotlight", href: "#spotlight" },
-  { label: "depup Office", href: "/office" },
+  { label: "depup Office", href: "/en/office" },
   { label: "Updates", href: "#updates" },
   { label: "Ecosystem", href: "#ecosystem" },
   { label: "Engineering", href: "#engineering" },
@@ -2288,8 +2288,8 @@ const FOOTER: { title: string; links: { label: string; href: string }[] }[] = [
     title: "Products",
     links: [
       { label: "depup.cloud", href: "https://depup.cloud" },
-      { label: "depup Office", href: "/office" },
-      { label: "Sentinel-ID", href: "/sentinel" },
+      { label: "depup Office", href: "/en/office" },
+      { label: "Sentinel-ID", href: "/en/sentinel" },
     ],
   },
   {
@@ -2297,13 +2297,13 @@ const FOOTER: { title: string; links: { label: string; href: string }[] }[] = [
     links: [
       { label: "Open depup.cloud", href: "https://depup.cloud" },
       { label: "sentinel-id.net", href: "https://sentinel-id.net" },
-      { label: "Get depup Office", href: "/office" },
+      { label: "Get depup Office", href: "/en/office" },
     ],
   },
   {
     title: "Trust",
     links: [
-      { label: "Sentinel safety approach", href: "/sentinel#safety" },
+      { label: "Sentinel safety approach", href: "/en/sentinel#safety" },
       { label: "Office privacy", href: "/office/privacy-policy" },
       { label: "API Status", href: "/api/status" },
     ],
